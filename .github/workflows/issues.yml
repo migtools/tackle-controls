@@ -16,6 +16,7 @@ jobs:
     if: ${{ github.event.action == 'opened' && startsWith(github.event.issue.title, '[TACKLE-') }}
     name: New GitHub Issue to sync with Jira
     steps:
+      - uses: actions/checkout@v2.1.0
       - env:
           BEARER: ${{ secrets.JIRA_TACKLE_BEARER }}
           JIRA_ISSUE_ID: echo ${{ github.event.issue.title }}|cut -d] -f1|sed 's/[[]//g'
