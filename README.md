@@ -1,4 +1,367 @@
 # Tackle Controls Application
 
 This is the application that manages the entities related to the controls service for the Tackle Application Inventory application.  
-This includes Business Services, Stakeholders, Stakeholder Groups, Tag Types and Tags.
+This includes Business Services, Stakeholders, Stakeholder Groups, Tag Types and Tags.  
+
+This project uses Quarkus, the Supersonic Subatomic Java Framework.  
+If you want to learn more about Quarkus, please visit its website: https://quarkus.io/.  
+
+## Quarkus extensions used
+
+### [REST Data Panache](https://quarkus.io/guides/rest-data-panache)
+
+REST Data Panache (using the [active record pattern](https://quarkus.io/guides/hibernate-orm-panache#solution-1-using-the-active-record-pattern)) provides:
+
+1. sorting
+1. pagination
+
+### [Flyway](https://flywaydb.org)
+
+[Quarkus Flyway extension](https://quarkus.io/guides/flyway) provides:
+1. DB production management: SQL scripts must be placed in [`src/main/resources/db/migration/`](src/main/resources/db/migration) folder, following [Quarkus Flyway default location](https://quarkus.io/guides/flyway#quarkus-flyway_quarkus.flyway.locations)
+1. DB test data import: SQL scripts must be placed in [`src/main/resources/db/test-data/`](src/main/resources/db/test-data) folder, leveraging the `test` profile property `%test.quarkus.flyway.locations=db/migration,db/test-data`
+
+File names convention is based on [Flyway "Versioned Migrations" docs](https://flywaydb.org/documentation/concepts/migrations#versioned-migrations) and follows the pattern:
+```sql
+V<yyyymmdd>__<SQL action>_<resource>.sql
+```
+where:
+
+* `yyyymmdd` is the date the file has been added (e.g. `20200928`).  
+  In case of multiple files added the same day, add a `.X` suffix (e.g. `20210104.1`)
+* `SQL action` is the "SQL action" executed inside the SQL script (e.g. `create`, `alter`, `insert`)
+* `resource` is the resource managed by the SQL scripts (e.g. `business-service`)
+
+## Development
+
+### Required components
+
+#### PostgreSQL
+
+First start a PostreSQL container in [Podman](https://podman.io/) executing:
+```Shell
+$ podman run -it --rm=true --memory-swappiness=0 \
+            --name postgres-controls -e POSTGRES_USER=controls \
+            -e POSTGRES_PASSWORD=controls -e POSTGRES_DB=controls_db \
+            -p 5432:5432 postgres:10.6
+```
+It works the same with Docker just replacing `podman` with `docker` in the above command.
+
+#### Keycloak
+
+```Shell
+$ podman run -it --name keycloak --rm \
+            -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin -e KEYCLOAK_IMPORT=/tmp/keycloak/quarkus-realm.json \
+            -e DB_VENDOR=h2 -p 8180:8080 -p 8543:8443 -v ./src/main/resources/keycloak:/tmp/keycloak:Z \
+            jboss/keycloak:12.0.2
+```
+
+### Run the application in dev mode
+
+You can run your application in dev mode that enables live coding using:
+```Shell
+$ ./mvnw quarkus:dev
+```
+
+### Call endpoints in dev mode
+
+To do calls to application's endpoint while running it in dev mode, execute the following commands:
+```Shell
+$ export access_token=$(\
+    curl -X POST http://localhost:8180/auth/realms/quarkus/protocol/openid-connect/token \
+    --user backend-service:secret \
+    -H 'content-type: application/x-www-form-urlencoded' \
+    -d 'username=alice&password=alice&grant_type=password' | jq --raw-output '.access_token' \
+ )
+$ curl -X GET 'http://localhost:8080/controls/business-service?description=ser&sort=name' \
+  -H 'Accept: application/json' -H "Authorization: Bearer "$access_token |jq .
+```
+
+### Insert test data
+
+To help the development, there's a script that inserts three stakeholders and three business services.  
+To run it, execute the command:
+```shell
+$ ./src/main/resources/import-curl.sh localhost:8080
+```
+
+### Add a resource
+
+For creating the `Foo` resource, follow these steps:
+
+1. add `Foo.java` bean class in [`src/main/java/io/tackle/controls/entities/`](src/main/java/io/tackle/controls/entities/)
+   adapting this template class:
+   ```java
+    package io.tackle.controls.entities;
+
+    import org.hibernate.annotations.SQLDelete;
+    import org.hibernate.annotations.Where;
+    import javax.persistence.Entity;
+    
+    @Entity
+    @SQLDelete(sql = "UPDATE foo SET deleted = true WHERE id = ?", check = ResultCheckStyle.COUNT)
+    @Where(clause = "deleted = false")
+    public class Foo extends AbstractEntity {
+        <<add fields>>
+    }
+   ```
+   when adding fields to the entity, remember to add the `@Filterable` annotation (from `io.tackle.controls.annotations` package) to the fields accepted as entity filters in REST endpoint.  
+   For example, if there's an entity's field named `description` that has to be a valid field to filter the entity it belongs to, add the annotation in this way:
+   ```java
+   @Filterable
+   public String description;
+   ```
+   In case the field represents a relational association entity, then add the field `filterName` to the `@Filterable` annotation in order to specify, with dot notation, the related entity field the filter will be applied to.  
+   For example, the [`BusinessService`](src/main/java/io/tackle/controls/entities/BusinessService.java) entity has an association with `Stakeholder` entity through the `owner` field.  
+   Since it has been decided the `Stakeholder`'s field to filter by is the `displayName`, the `owner` field has been annotated in this way:
+   ```java
+   @Filterable(filterName = "owner.displayName")
+   public Stakeholder owner;
+   ```
+   so that a REST request to filter Business Service entities can use the `owner.displayName` as query parameter.
+1. add `FooResource.java` resource class in [`src/main/java/io/tackle/controls/resources/`](src/main/java/io/tackle/controls/resources/)
+   adapting this template class:
+   ```java
+    package io.tackle.controls.resources;
+    
+    import io.quarkus.hibernate.orm.rest.data.panache.PanacheEntityResource;
+    import io.quarkus.panache.common.Page;
+    import io.quarkus.panache.common.Sort;
+    import io.quarkus.rest.data.panache.MethodProperties;
+    import io.quarkus.rest.data.panache.ResourceProperties;
+    import io.tackle.controls.entities.Foo;
+    
+    @ResourceProperties(hal = true)
+    public interface FooResource extends PanacheEntityResource<Foo, Long> {
+       @MethodProperties(exposed = false)
+       List<BusinessService> list(Page page, Sort sort);
+    }
+   ```
+   in this way the REST Data Panache extension will be used for providing all endpoints but the "list" one because we need filtering for lists which is not provided (yet?) from that Quarkus extension.
+1. to add the "list" endpoints (both plain JSON and HAL), add `FooListFilteredResource.java` class in [`src/main/java/io/tackle/controls/resources/`](src/main/java/io/tackle/controls/resources/) adapting this template class:
+   ```java
+   package io.tackle.controls.resources;
+   
+   import io.tackle.controls.entities.Foo;
+   import org.jboss.resteasy.links.LinkResource;
+   
+   import javax.ws.rs.DefaultValue;
+   import javax.ws.rs.GET;
+   import javax.ws.rs.Path;
+   import javax.ws.rs.Produces;
+   import javax.ws.rs.QueryParam;
+   import javax.ws.rs.core.Context;
+   import javax.ws.rs.core.Response;
+   import javax.ws.rs.core.UriInfo;
+   import java.util.List;
+   
+   @Path("foo")
+   public class FooListFilteredResource implements ListFilteredResource<Foo> {
+   
+       @Override
+       public Class<Foo> getPanacheEntityType() {
+           return Foo.class;
+       }
+   
+       @GET
+       @Path("")
+       @Produces({"application/json"})
+       @LinkResource(
+               entityClassName = "io.tackle.controls.entities.Foo",
+               rel = "list"
+       )
+       public Response list(@QueryParam("sort") List var1,
+                            @QueryParam("page") @DefaultValue("0") int var2,
+                            @QueryParam("size") @DefaultValue("20") int var3,
+                            @QueryParam("filter") @DefaultValue("") String filter,
+                            @Context UriInfo var4) throws Exception {
+           return ListFilteredResource.super.list(var1, var2, var3, filter, var4, false);
+       }
+   
+       @Path("")
+       @GET
+       @Produces({"application/hal+json"})
+       public Response listHal(@QueryParam("sort") List var1,
+                               @QueryParam("page") @DefaultValue("0") int var2,
+                               @QueryParam("size") @DefaultValue("20") int var3,
+                               @QueryParam("filter") @DefaultValue("") String filter,
+                               @Context UriInfo var4) throws Exception {
+           return ListFilteredResource.super.list(var1, var2, var3, filter, var4, true);
+       }
+   }
+   ```
+1. start the application in dev mode following [Running the application in dev mode](#running-the-application-in-dev-mode)
+1. open a browser to http://localhost:8080/controls/q/swagger-ui/, this will trigger code reload
+1. check the application's log in terminal to retrieve Hibernate output about table creation, something like:
+   ```sql
+   Hibernate: 
+    
+    create table foo (
+       id int8 not null,
+        << all the fields declared in Foo bean >>
+        primary key (id)
+    )
+   ```
+   and copy all the SQL instructions needed to manage the new `Foo` resource
+1. create a `Vyyyymmdd__init_foo.sql` file (e.g. `V20200928__create_business-service.sql`) in [`src/main/resources/db/migration/`](src/main/resources/db/migration) folder (refer to [Flyway](#flyway) paragraph)
+1. paste inside the `Vyyyymmdd__init_foo.sql` file all the previously copied SQL instructions
+1. for tests execution, add test data into the database creating a `Vyyyymmdd__insert_foo.sql` file (e.g. `V20201210__insert_business-service.sql`) in [`src/main/resources/db/test-data/`](src/main/resources/db/test-data) folder (refer to [Flyway](#flyway) paragraph)
+
+### Change a resource
+
+1. start the application in dev mode following [Running the application in dev mode](#running-the-application-in-dev-mode)
+1. change `%dev.quarkus.hibernate-orm.database.generation = update` property
+1. modify resource
+1. open a browser to http://localhost:8080/controls/swagger-ui/, this will trigger code reload
+1. create a `Vyyyymmdd__alter_foo.sql` file (e.g. `V20210104.1__alter_business-service.sql`) in [`src/main/resources/db/migration/`](src/main/resources/db/migration) folder (refer to [Flyway](#flyway) paragraph)
+1. copy Hibernate SQL
+   ```sql
+   Hibernate: 
+    
+    alter table if exists foo 
+       add column updateTime timestamp
+
+   Hibernate:
+
+    alter table if exists foo 
+       add column updateUser varchar(255)
+   ```
+   
+An example of how to rename/remove/add columns copying data from existing into new columns is provided in [`V20210128__alter_stakeholder.sql`](src/main/resources/db/migration/V20210128__alter_stakeholder.sql) file.
+
+### Check generated code
+
+If you want to check the code generated by Quarkus extensions, both when running in dev mode or while executing tests, add the following properties:
+
+```Shell
+-Dquarkus.debug.transformed-classes-dir=target/dump -Dquarkus.debug.generated-classes-dir=target/dump
+```
+
+to dump the generated code into the `dump` folder.  
+More information available in [Dump the Generated Classes to the File System](https://quarkus.io/guides/writing-extensions#dump-the-generated-classes-to-the-file-system) guide.
+
+## Test
+
+### Tests environment
+
+The tests can be run without having to start any external components.  
+In some situations, for example during development when you run multiple times in a short time the tests, it might be desiderable to speed up the tests execution.  
+If the `TACKLE_KEYCLOAK_TEST_URL` environment variable is provided, the tests won't start the Keycloak testcontainer saving its startup time during tests execution.  
+Keycloak can be started following the instructions above in [Keycloak](#keycloak) paragraph.  
+Once Keycloak is started, set the `TACKLE_KEYCLOAK_TEST_URL` environment variable executing:
+```shell
+$ export TACKLE_KEYCLOAK_TEST_URL=https://localhost:8543/auth/realms/quarkus
+```
+In this way the tests will use this provided Keycloak instance instead of starting a new one.  
+
+### Testing JVM mode
+
+`$ ./mvnw test`
+
+> :bulb: In case of `DockerClientException: Could not pull image:` exception when using Podman, just try to re-run the test command.
+
+### Testing native mode
+
+`$ ./mvnw verify -Pnative -Dquarkus-profile=test`  
+where the `quarkus-profile=test` property is mandatory to force the build the native image using the `test` profile since otherwise the default `prod` profile would be used. 
+
+If you want to just execute (again) the native tests without building again the native image, use the following command:  
+`$ ./mvnw test-compile failsafe:integration-test -Pnative`
+
+## Package and run locally
+
+### JVM mode
+The application can be packaged using the `$ ./mvnw package` command.  
+It produces the `controls-0.0.1-SNAPSHOT-runner.jar` file in the `/target` directory.  
+Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/lib` directory.
+
+The application is now runnable using `java -jar target/controls-0.0.1-SNAPSHOT-runner.jar`.
+
+### Native mode
+
+You can create a native executable using: `$ ./mvnw package -Pnative -Dquarkus.native.container-build=true`  
+If you have GraalVM installed locally, you can run the native executable build without the `-Dquarkus.native.container-build=true` option.  
+You can then execute your native executable with: `./target/controls-0.0.1-SNAPSHOT-runner`  
+
+### Test coverage
+
+To get the report of test coverage of the application's code it's a matter of activating the `coverage` Maven profile during `verify` Maven goal execution like in the following command:  
+```shell
+$ ./mvnw verify -Pcoverage
+```
+
+at the end the report will be available opening in a browser the `target/site/jacoco-ut/index.html` file.  
+
+## Kubernetes
+
+### Minikube
+
+This is base on using Podman and CRI-O locally.
+Something very similar can be done using Docker.
+
+#### Start Minikube
+
+```Shell
+$ minikube start --driver=podman --container-runtime=cri-o --feature-gates="LocalStorageCapacityIsolation=false"
+```
+Once started you can open its dashboard executing
+```Shell
+$ minikube dashboard
+```
+
+#### Deploy the application
+
+First build the container image for the application executing:
+```Shell
+$ ./mvnw package -Pcontainer-image # eventually with -Pnative to deploy the native application
+```
+If it's the first deployment then create (just once) a dedicated namespace with
+```shell
+$ kubectl create namespace tackle
+```
+then you can deploy applying the files generated during the build running the command:
+```Shell
+$ kubectl apply -f target/kubernetes/minikube.yml -n tackle
+```
+If there are no changes to the resources in Kubernetes and you just need to have the latest image deployed, you can execute
+```Shell
+$ kubectl rollout restart deployment controls -n tackle
+```
+
+#### Call endpoints
+
+```shell
+$ export access_token=$(\
+    curl -X POST $(minikube service --url=true keycloak -n tackle)/auth/realms/quarkus/protocol/openid-connect/token \
+    --user backend-service:secret \
+    -H 'content-type: application/x-www-form-urlencoded' \
+    -d 'username=alice&password=alice&grant_type=password' | jq --raw-output '.access_token' \
+ )
+$ curl -X GET "$(minikube service --url=true controls -n tackle)/controls/business-service?description=ser&sort=name" \
+  -H 'Accept: application/json' -H "Authorization: Bearer "$access_token |jq .
+```
+
+### Kubernetes
+
+To deploy the application you built locally into a Kubernetes instance, you can push your image to a container repository to make it available for deployment into the Kubernetes instance.  
+First create the container image (JVM or native mode, native in the example) providing the name of the repository you want to later push the image to: in this case I'm going to use [quay.io](https://quay.io/):
+```shell
+$ ./mvnw package -Pnative -Pcontainer-image -Dquarkus.container-image.registry=quay.io
+```
+and then push the image to quay.io repository executing:
+```shell
+$ podman push quay.io/<your quay user>/controls:<version>-<type>
+```
+where
+* `version` = the version of the current project
+* `type` = the package type (i.e. `jar` or `native`)
+
+### Openshift
+
+*TBD*
+
+## Performance testing
+
+```Shell
+$ ab -n 1000 -c 20 -H 'Accept: application/hal+json' 'http://<host>/controls/business-service?name=service&sort=name&size=1&page=1'
+```

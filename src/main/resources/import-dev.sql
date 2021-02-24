@@ -1,0 +1,5 @@
+INSERT INTO stakeholder (id, displayName, email, jobFunction, createUser, createTime, deleted) VALUES (nextval('hibernate_sequence'), 'Jessica Fletcher', 'jbfletcher@murdershewrote.com', 'CEO', 'mrizzi', CURRENT_TIMESTAMP, false);
+INSERT INTO stakeholder (id, displayName, email, jobFunction, createUser, createTime, deleted) VALUES (nextval('hibernate_sequence'), 'Emmett Brown', 'doc@greatscott.movie', 'CTO', 'mrizzi', CURRENT_TIMESTAMP, false);
+INSERT INTO business_service (id, name, description, owner_id, createUser, createTime, deleted) VALUES (nextval('hibernate_sequence'), 'Home Banking BU', 'Important service to let private customer use their home banking accounts', 1, 'mrizzi', CURRENT_TIMESTAMP, false);
+INSERT INTO business_service (id, name, description, owner_id, createUser, createTime, deleted) VALUES (nextval('hibernate_sequence'), 'Online Investments service', 'Corporate customers investments management', 2, 'foo', CURRENT_TIMESTAMP, false);
+INSERT INTO business_service (id, name, description, deleted) VALUES (nextval('hibernate_sequence'), 'Credit Cards BS', 'Internal credit card creation and management service', false);
