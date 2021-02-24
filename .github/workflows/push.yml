@@ -22,7 +22,7 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2  
     - name: Build with Maven
-      run: mvn -B test --file controls/pom.xml
+      run: mvn -B test --file pom.xml
 
   integration-native-test:
 
@@ -41,7 +41,7 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2  
     - name: Build with Maven
-      run: mvn -B verify -Pnative -Dquarkus-profile=test --file controls/pom.xml
+      run: mvn -B verify -Pnative -Dquarkus-profile=test --file pom.xml
 
   build-jvm-container:
     name: Build and push JVM image
@@ -64,10 +64,10 @@ jobs:
       uses: rlespinasse/github-slug-action@v3.x
     - name: Build Image for PR with Maven
       if: ${{ github.event_name == 'pull_request' }}
-      run: mvn -B package --file controls/pom.xml -Pcontainer-image -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.group=${{ github.repository_owner }} -Dquarkus.container-image.tag=${{ env.GITHUB_SHA_SHORT }}-jar -Dquarkus.container-image.additional-tags=${{ env.GITHUB_HEAD_REF_SLUG }}-jar -Dquarkus.container-image.registry=${{ secrets.QUAY_REPO }} -Dquarkus.container-image.username=${{ secrets.QUAY_ROBOT_USERNAME }} -Dquarkus.container-image.password=${{ secrets.QUAY_ROBOT_TOKEN }} -Dquarkus.jib.labels.\"quay.expires-after\"=3d
+      run: mvn -B package --file pom.xml -Pcontainer-image -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.group=${{ github.repository_owner }} -Dquarkus.container-image.tag=${{ env.GITHUB_SHA_SHORT }}-jar -Dquarkus.container-image.additional-tags=${{ env.GITHUB_HEAD_REF_SLUG }}-jar -Dquarkus.container-image.registry=${{ secrets.QUAY_REPO }} -Dquarkus.container-image.username=${{ secrets.QUAY_ROBOT_USERNAME }} -Dquarkus.container-image.password=${{ secrets.QUAY_ROBOT_TOKEN }} -Dquarkus.jib.labels.\"quay.expires-after\"=3d
     - name: Build Image for main branch with Maven
       if: ${{ github.event_name == 'push' }}
-      run: mvn -B package --file controls/pom.xml -Pcontainer-image -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.group=${{ github.repository_owner }} -Dquarkus.container-image.additional-tags=latest-jar -Dquarkus.container-image.registry=${{ secrets.QUAY_REPO }} -Dquarkus.container-image.username=${{ secrets.QUAY_ROBOT_USERNAME }} -Dquarkus.container-image.password=${{ secrets.QUAY_ROBOT_TOKEN }}
+      run: mvn -B package --file pom.xml -Pcontainer-image -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.group=${{ github.repository_owner }} -Dquarkus.container-image.additional-tags=latest-jar -Dquarkus.container-image.registry=${{ secrets.QUAY_REPO }} -Dquarkus.container-image.username=${{ secrets.QUAY_ROBOT_USERNAME }} -Dquarkus.container-image.password=${{ secrets.QUAY_ROBOT_TOKEN }}
 
   build-native-container:
     name: Build and push native image
@@ -90,7 +90,7 @@ jobs:
       uses: rlespinasse/github-slug-action@v3.x
     - name: Build Image for PR with Maven
       if: ${{ github.event_name == 'pull_request' }}
-      run: mvn -B package --file controls/pom.xml -Pcontainer-image -Pnative -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.group=${{ github.repository_owner }} -Dquarkus.container-image.tag=${{ env.GITHUB_SHA_SHORT }}-native -Dquarkus.container-image.additional-tags=${{ env.GITHUB_HEAD_REF_SLUG }}-native -Dquarkus.container-image.registry=${{ secrets.QUAY_REPO }} -Dquarkus.container-image.username=${{ secrets.QUAY_ROBOT_USERNAME }} -Dquarkus.container-image.password=${{ secrets.QUAY_ROBOT_TOKEN }} -Dquarkus.jib.labels.\"quay.expires-after\"=3d
+      run: mvn -B package --file pom.xml -Pcontainer-image -Pnative -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.group=${{ github.repository_owner }} -Dquarkus.container-image.tag=${{ env.GITHUB_SHA_SHORT }}-native -Dquarkus.container-image.additional-tags=${{ env.GITHUB_HEAD_REF_SLUG }}-native -Dquarkus.container-image.registry=${{ secrets.QUAY_REPO }} -Dquarkus.container-image.username=${{ secrets.QUAY_ROBOT_USERNAME }} -Dquarkus.container-image.password=${{ secrets.QUAY_ROBOT_TOKEN }} -Dquarkus.jib.labels.\"quay.expires-after\"=3d
     - name: Build Image for main branch with Maven
       if: ${{ github.event_name == 'push' }}
-      run: mvn -B package --file controls/pom.xml -Pcontainer-image -Pnative -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.group=${{ github.repository_owner }} -Dquarkus.container-image.additional-tags=latest-native -Dquarkus.container-image.registry=${{ secrets.QUAY_REPO }} -Dquarkus.container-image.username=${{ secrets.QUAY_ROBOT_USERNAME }} -Dquarkus.container-image.password=${{ secrets.QUAY_ROBOT_TOKEN }}
+      run: mvn -B package --file pom.xml -Pcontainer-image -Pnative -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.group=${{ github.repository_owner }} -Dquarkus.container-image.additional-tags=latest-native -Dquarkus.container-image.registry=${{ secrets.QUAY_REPO }} -Dquarkus.container-image.username=${{ secrets.QUAY_ROBOT_USERNAME }} -Dquarkus.container-image.password=${{ secrets.QUAY_ROBOT_TOKEN }}
