@@ -23,7 +23,7 @@ jobs:
           NUMBER: ${{ github.event.issue.number }}
           DESCRIPTION: ${{ github.event.issue.html_url }}
         run: |
-          issue_create.sh
+          src/main/resources/issue_create.sh
 
   sync-reopened:
     runs-on: ubuntu-latest
@@ -35,7 +35,7 @@ jobs:
           JIRA_ISSUE_ID: echo ${{ github.event.issue.title }}|cut -d] -f1|sed 's/[[]//g'
           NUMBER: ${{ github.event.issue.number }}
         run: |
-          issue_transaction.sh 4
+          src/main/resources/issue_transaction.sh 4
 
   sync-closed:
     runs-on: ubuntu-latest
@@ -47,4 +47,4 @@ jobs:
           JIRA_ISSUE_ID: echo ${{ github.event.issue.title }}|cut -d] -f1|sed 's/[[]//g'
           NUMBER: ${{ github.event.issue.number }}
         run: |
-          issue_transaction.sh 2
+          src/main/resources/issue_transaction.sh 2
