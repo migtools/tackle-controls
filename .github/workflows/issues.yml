@@ -1,0 +1,50 @@
+name: Tackle Controls Issues Sync
+
+defaults:
+  run:
+    shell: bash
+    working-directory: src/main/resources/
+
+on:
+  issues:
+    types: [opened, closed, reopened]
+
+jobs:
+
+  sync-opened:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.action == 'opened' && startsWith(github.event.issue.title, '[TACKLE-') }}
+    name: New GitHub Issue to sync with Jira
+    steps:
+      - env:
+          BEARER: ${{ secrets.JIRA_TACKLE_BEARER }}
+          JIRA_ISSUE_ID: echo ${{ github.event.issue.title }}|cut -d] -f1|sed 's/[[]//g'
+          TITLE: echo ${{ github.event.issue.title }}|cut -d] -f2
+          NUMBER: ${{ github.event.issue.number }}
+          DESCRIPTION: ${{ github.event.issue.html_url }}
+        run: |
+          issue_create.sh
+
+  sync-reopened:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.action == 'reopened' && startsWith(github.event.issue.title, '[TACKLE-') }}
+    name: Reopened GitHub Issue to sync with Jira
+    steps:
+      - env:
+          BEARER: ${{ secrets.JIRA_TACKLE_BEARER }}
+          JIRA_ISSUE_ID: echo ${{ github.event.issue.title }}|cut -d] -f1|sed 's/[[]//g'
+          NUMBER: ${{ github.event.issue.number }}
+        run: |
+          issue_transaction.sh 4
+
+  sync-closed:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.action == 'closed' && startsWith(github.event.issue.title, '[TACKLE-') }}
+    name: Closed GitHub Issue to sync with Jira
+    steps:
+      - env:
+          BEARER: ${{ secrets.JIRA_TACKLE_BEARER }}
+          JIRA_ISSUE_ID: echo ${{ github.event.issue.title }}|cut -d] -f1|sed 's/[[]//g'
+          NUMBER: ${{ github.event.issue.number }}
+        run: |
+          issue_transaction.sh 2

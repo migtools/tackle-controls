@@ -1,0 +1,2 @@
+JIRA_SUBTASK_ID=$(curl -u mrizzi -X GET -H "Content-Type: application/json" https://issues.redhat.com/rest/api/2/issue/$JIRA_ISSUE_ID|jq --raw-output '.fields.subtasks[] | select(.fields.summary | startswith("[tackle-controls#'$NUMBER']")).key')
+curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer "$BEARER https://issues.redhat.com/rest/api/2/issue/$JIRA_SUBTASK_ID/transitions -d "{\"transition\":{\"id\":$1}}";
