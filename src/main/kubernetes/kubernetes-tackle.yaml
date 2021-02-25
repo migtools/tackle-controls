@@ -130,7 +130,7 @@ spec:
             claimName: keycloak-postgresql
       containers:
         - name: postgres
-          image: quay.io/mrizzi/postgres:10.6
+          image: quay.io/konveyor/tackle-postgres:10.6
           ports:
             - containerPort: 5432
               protocol: TCP
@@ -221,12 +221,12 @@ spec:
           emptyDir: {}
       initContainers:
         - name: keycloak-theme
-          image: quay.io/mrizzi/busybox:1.32.1
+          image: quay.io/konveyor/tackle-busybox:1.32.1
           command:
             - wget
             - "-P"
             - "deployments"
-            - "https://raw.githubusercontent.com/carlosthe19916/controls-keycloak-theme/master/tackle-keycloak-theme-0.2-SNAPSHOT.jar"
+            - "https://raw.githubusercontent.com/konveyor/tackle-keycloak-theme/main/tackle-keycloak-theme-0.1-SNAPSHOT.jar"
           volumeMounts:
             - name: theme-volume
               mountPath: /deployments
@@ -2066,7 +2066,7 @@ spec:
             claimName: controls-postgresql
       containers:
         - name: postgres
-          image: 'quay.io/mrizzi/postgres:10.6'
+          image: 'quay.io/konveyor/tackle-postgres:10.6'
           ports:
             - containerPort: 5432
               protocol: TCP
@@ -2197,7 +2197,7 @@ spec:
     spec:
       containers:
         - name: tackle-ui
-          image: quay.io/carlosthe19916/controls-ui:master
+          image: quay.io/konveyor/tackle-ui:main
           ports:
             - containerPort: 8080
               protocol: TCP
@@ -2205,7 +2205,7 @@ spec:
               protocol: TCP
           env:
             - name: CONTROLS_API_URL
-              value: 'http://poc-controls:8080'
+              value: 'http://tackle-controls:8080'
             - name: SSO_REALM
               value: quarkus
             - name: SSO_CLIENT_ID
@@ -2271,18 +2271,18 @@ metadata:
     prometheus.io/scrape: "true"
     prometheus.io/path: /q/metrics
   labels:
-    app.kubernetes.io/name: poc-controls
+    app.kubernetes.io/name: tackle-controls
     app.kubernetes.io/part-of: tackle
     app.kubernetes.io/version: 0.0.1-SNAPSHOT-native
     app.kubernetes.io/component: rest
-  name: poc-controls
+  name: tackle-controls
 spec:
   ports:
     - name: http
       port: 8080
       targetPort: 8080
   selector:
-    app.kubernetes.io/name: poc-controls
+    app.kubernetes.io/name: tackle-controls
     app.kubernetes.io/part-of: tackle
     app.kubernetes.io/version: 0.0.1-SNAPSHOT-native
   type: ClusterIP
@@ -2298,15 +2298,15 @@ metadata:
   labels:
     app.kubernetes.io/component: rest
     app.kubernetes.io/version: 0.0.1-SNAPSHOT-native
-    app.kubernetes.io/name: poc-controls
+    app.kubernetes.io/name: tackle-controls
     app.kubernetes.io/part-of: tackle
-  name: poc-controls
+  name: tackle-controls
 spec:
   replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/version: 0.0.1-SNAPSHOT-native
-      app.kubernetes.io/name: poc-controls
+      app.kubernetes.io/name: tackle-controls
       app.kubernetes.io/part-of: tackle
   template:
     metadata:
@@ -2318,7 +2318,7 @@ spec:
       labels:
         app.kubernetes.io/component: rest
         app.kubernetes.io/version: 0.0.1-SNAPSHOT-native
-        app.kubernetes.io/name: poc-controls
+        app.kubernetes.io/name: tackle-controls
         app.kubernetes.io/part-of: tackle
     spec:
       containers:
@@ -2337,7 +2337,7 @@ spec:
                 secretKeyRef:
                   name: controls-postgresql
                   key: database-password
-          image: quay.io/mrizzi/poc-controls:0.0.1-SNAPSHOT-native
+          image: quay.io/konveyor/tackle-controls:0.0.1-SNAPSHOT-native
           imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 3
@@ -2349,7 +2349,7 @@ spec:
             periodSeconds: 30
             successThreshold: 1
             timeoutSeconds: 10
-          name: poc-controls
+          name: tackle-controls
           ports:
             - containerPort: 8080
               name: http
