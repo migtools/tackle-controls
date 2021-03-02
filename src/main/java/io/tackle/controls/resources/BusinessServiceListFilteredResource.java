@@ -1,5 +1,6 @@
 package io.tackle.controls.resources;
 
+import io.tackle.commons.resources.ListFilteredResource;
 import org.jboss.resteasy.links.LinkResource;
 import io.tackle.controls.entities.BusinessService;
 

@@ -1,6 +1,7 @@
 package io.tackle.controls.entities;
 
-import io.tackle.controls.annotations.Filterable;
+import io.tackle.commons.entities.AbstractEntity;
+import io.tackle.commons.annotations.Filterable;
 import org.hibernate.annotations.ResultCheckStyle;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;

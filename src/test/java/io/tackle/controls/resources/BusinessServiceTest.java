@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.common.ResourceArg;
 import io.quarkus.test.junit.DisabledOnNativeImage;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
@@ -11,9 +12,10 @@ import io.restassured.config.ObjectMapperConfig;
 import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
+import io.tackle.commons.testcontainers.KeycloakTestResource;
+import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
+import io.tackle.commons.tests.SecuredResourceTest;
 import io.tackle.controls.entities.BusinessService;
-import io.tackle.controls.testcontainers.keycloak.KeycloakResource;
-import io.tackle.controls.testcontainers.postresql.PostgreSQLResource;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -29,8 +31,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
-@QuarkusTestResource(PostgreSQLResource.class)
-@QuarkusTestResource(KeycloakResource.class)
+@QuarkusTestResource(value = PostgreSQLDatabaseTestResource.class,
+        initArgs = {
+                @ResourceArg(name = PostgreSQLDatabaseTestResource.DB_NAME, value = "controls_db"),
+                @ResourceArg(name = PostgreSQLDatabaseTestResource.USER, value = "controls"),
+                @ResourceArg(name = PostgreSQLDatabaseTestResource.PASSWORD, value = "controls")
+        }
+)
+@QuarkusTestResource(value = KeycloakTestResource.class,
+        initArgs = {
+                @ResourceArg(name = KeycloakTestResource.IMPORT_REALM_JSON_PATH, value = "keycloak/quarkus-realm.json"),
+                @ResourceArg(name = KeycloakTestResource.REALM_NAME, value = "quarkus")
+        }
+)
 public class BusinessServiceTest extends SecuredResourceTest {
 
     @BeforeAll
