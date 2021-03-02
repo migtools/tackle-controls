@@ -1,9 +1,11 @@
 package io.tackle.controls.resources;
 
 import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.common.ResourceArg;
 import io.quarkus.test.junit.QuarkusTest;
-import io.tackle.controls.testcontainers.keycloak.KeycloakResource;
-import io.tackle.controls.testcontainers.postresql.PostgreSQLResource;
+import io.tackle.commons.testcontainers.KeycloakTestResource;
+import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
+import io.tackle.commons.tests.SecuredResourceTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.converter.ArgumentConversionException;
@@ -19,8 +21,19 @@ import static org.hamcrest.Matchers.containsInRelativeOrder;
 import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
-@QuarkusTestResource(PostgreSQLResource.class)
-@QuarkusTestResource(KeycloakResource.class)
+@QuarkusTestResource(value = PostgreSQLDatabaseTestResource.class,
+        initArgs = {
+                @ResourceArg(name = PostgreSQLDatabaseTestResource.DB_NAME, value = "controls_db"),
+                @ResourceArg(name = PostgreSQLDatabaseTestResource.USER, value = "controls"),
+                @ResourceArg(name = PostgreSQLDatabaseTestResource.PASSWORD, value = "controls")
+        }
+)
+@QuarkusTestResource(value = KeycloakTestResource.class,
+        initArgs = {
+                @ResourceArg(name = KeycloakTestResource.IMPORT_REALM_JSON_PATH, value = "keycloak/quarkus-realm.json"),
+                @ResourceArg(name = KeycloakTestResource.REALM_NAME, value = "quarkus")
+        }
+)
 public class ServicesParameterizedTest extends SecuredResourceTest {
 
     // the 'name' output seems not to work with Quarkus

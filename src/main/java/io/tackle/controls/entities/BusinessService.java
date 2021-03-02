@@ -1,7 +1,8 @@
 package io.tackle.controls.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.tackle.controls.annotations.Filterable;
+import io.tackle.commons.annotations.Filterable;
+import io.tackle.commons.entities.AbstractEntity;
 import org.hibernate.annotations.ResultCheckStyle;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
