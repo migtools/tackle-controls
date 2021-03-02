@@ -1,6 +1,5 @@
 package io.tackle.controls.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.tackle.commons.annotations.Filterable;
 import io.tackle.commons.entities.AbstractEntity;
 import org.hibernate.annotations.ResultCheckStyle;
@@ -23,7 +22,6 @@ public class BusinessService extends AbstractEntity {
     @Filterable
     public String description;
     @ManyToOne
-    @JsonIgnoreProperties({"jobFunction", "email"})
     @Filterable(filterName = "owner.displayName")
     public Stakeholder owner;
 }
