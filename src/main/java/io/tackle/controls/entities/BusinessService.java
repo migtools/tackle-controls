@@ -16,7 +16,6 @@ import javax.persistence.Table;
 @SQLDelete(sql = "UPDATE business_service SET deleted = true WHERE id = ?", check = ResultCheckStyle.COUNT)
 @Where(clause = "deleted = false")
 public class BusinessService extends AbstractEntity {
-    @Column(unique=true)
     @Filterable
     public String name;
     @Filterable
