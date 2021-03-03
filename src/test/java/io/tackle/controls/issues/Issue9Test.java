@@ -91,5 +91,11 @@ public class Issue9Test extends SecuredResourceTest {
                     "owner[0]", is(emptyOrNullString()),
                     "id[0]", is(businessServiceId.intValue()),
                     "size()", is(1));
+
+        // let's remove also the Business Service to not interfere with other tests
+        given()
+                .pathParam("id", businessServiceId)
+                .when().delete("/business-service/{id}")
+                .then().statusCode(204);
     }
 }
