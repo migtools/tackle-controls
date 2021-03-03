@@ -1,6 +1,5 @@
 package io.tackle.controls.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.tackle.commons.annotations.Filterable;
 import io.tackle.commons.entities.AbstractEntity;
 import org.hibernate.annotations.ResultCheckStyle;
@@ -17,13 +16,11 @@ import javax.persistence.Table;
 @SQLDelete(sql = "UPDATE business_service SET deleted = true WHERE id = ?", check = ResultCheckStyle.COUNT)
 @Where(clause = "deleted = false")
 public class BusinessService extends AbstractEntity {
-    @Column(unique=true)
     @Filterable
     public String name;
     @Filterable
     public String description;
     @ManyToOne
-    @JsonIgnoreProperties({"jobFunction", "email"})
     @Filterable(filterName = "owner.displayName")
     public Stakeholder owner;
 }
