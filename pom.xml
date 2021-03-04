@@ -27,6 +27,7 @@
     <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
     <jacoco.version>0.8.6</jacoco.version>
     <quarkus.package.type>jar</quarkus.package.type>
+    <keycloak.version>12.0.3</keycloak.version>
   </properties>
 
   <repositories>
@@ -182,6 +183,7 @@
             <jacoco-agent.destfile>${project.build.directory}/jacoco-ut.exec</jacoco-agent.destfile>
             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
             <maven.home>${maven.home}</maven.home>
+            <keycloak.version>${keycloak.version}</keycloak.version>
           </systemPropertyVariables>
         </configuration>
       </plugin>
@@ -197,6 +199,7 @@
             <version>${surefire-plugin.version}</version>
             <executions>
               <execution>
+                <id>tackle-controls-IT</id>
                 <goals>
                   <goal>integration-test</goal>
                   <goal>verify</goal>
@@ -206,6 +209,7 @@
                     <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
                     <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                     <maven.home>${maven.home}</maven.home>
+                    <keycloak.version>${keycloak.version}</keycloak.version>
                   </systemPropertyVariables>
                   <trimStackTrace>false</trimStackTrace>
                 </configuration>
