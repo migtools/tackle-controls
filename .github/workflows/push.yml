@@ -105,7 +105,7 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Generate jacoco report
-        run: ./mvnw verify -Pjacoco --file pom.xml
+        run: mvn verify -Pjacoco --file pom.xml
       - uses: codecov/codecov-action@v1
         with:
           file: ./target/site/jacoco-ut/jacoco.xml
