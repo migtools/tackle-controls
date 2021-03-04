@@ -1,4 +1,4 @@
-package io.tackle.controls.exceptions;
+package io.tackle.controls.util.exceptions;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;

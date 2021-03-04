@@ -307,7 +307,7 @@
       </build>
     </profile>
     <profile>
-      <id>coverage</id>
+      <id>jacoco</id>
       <build>
         <plugins>
            <plugin>
