@@ -29,22 +29,20 @@ public class StakeholderListFilteredResource implements ListFilteredResource<Sta
             entityClassName = "io.tackle.controls.entities.Stakeholder",
             rel = "list"
     )
-    public Response list(@QueryParam("sort") List var1,
-                         @QueryParam("page") @DefaultValue("0") int var2,
-                         @QueryParam("size") @DefaultValue("20") int var3,
-                         @QueryParam("filter") @DefaultValue("") String filter,
+    public Response list(@QueryParam(QUERY_PARAM_SORT) @DefaultValue(DEFAULT_VALUE_SORT) List var1,
+                         @QueryParam(QUERY_PARAM_PAGE) @DefaultValue(DEFAULT_VALUE_PAGE) int var2,
+                         @QueryParam(QUERY_PARAM_SIZE) @DefaultValue(DEFAULT_VALUE_SIZE) int var3,
                          @Context UriInfo var4) throws Exception {
-        return ListFilteredResource.super.list(var1, var2, var3, filter, var4, false);
+        return ListFilteredResource.super.list(var1, var2, var3, var4, false);
     }
 
     @Path("")
     @GET
     @Produces({"application/hal+json"})
-    public Response listHal(@QueryParam("sort") List var1,
-                            @QueryParam("page") @DefaultValue("0") int var2,
-                            @QueryParam("size") @DefaultValue("20") int var3,
-                            @QueryParam("filter") @DefaultValue("") String filter,
+    public Response listHal(@QueryParam(QUERY_PARAM_SORT) @DefaultValue(DEFAULT_VALUE_SORT) List var1,
+                            @QueryParam(QUERY_PARAM_PAGE) @DefaultValue(DEFAULT_VALUE_PAGE) int var2,
+                            @QueryParam(QUERY_PARAM_SIZE) @DefaultValue(DEFAULT_VALUE_SIZE) int var3,
                             @Context UriInfo var4) throws Exception {
-        return ListFilteredResource.super.list(var1, var2, var3, filter, var4, true);
+        return ListFilteredResource.super.list(var1, var2, var3, var4, true);
     }
 }
