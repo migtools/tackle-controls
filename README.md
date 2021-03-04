@@ -82,7 +82,7 @@ $ curl -X GET 'http://localhost:8080/controls/business-service?description=ser&s
 To help the development, there's a script that inserts three stakeholders and three business services.  
 To run it, execute the command:
 ```shell
-$ ./src/main/resources/import-curl.sh localhost:8080
+$ ./src/main/resources/import-curl-locally.sh http://localhost:8080 http://localhost:8180
 ```
 
 ### Add a resource
@@ -94,6 +94,7 @@ For creating the `Foo` resource, follow these steps:
    ```java
     package io.tackle.controls.entities;
 
+    import io.tackle.commons.entities.AbstractEntity;
     import org.hibernate.annotations.SQLDelete;
     import org.hibernate.annotations.Where;
     import javax.persistence.Entity;
@@ -105,13 +106,13 @@ For creating the `Foo` resource, follow these steps:
         <<add fields>>
     }
    ```
-   when adding fields to the entity, remember to add the `@Filterable` annotation (from `io.tackle.controls.annotations` package) to the fields accepted as entity filters in REST endpoint.  
-   For example, if there's an entity's field named `description` that has to be a valid field to filter the entity it belongs to, add the annotation in this way:
+   When adding fields to the entity, remember to add the `@Filterable` annotation (from `io.tackle.commons.annotations` package) to the fields accepted as entity filters in REST endpoint.  
+   For example, if the entity's got a `description` field that we want to be able to filter by, add the annotation in this way:
    ```java
    @Filterable
    public String description;
    ```
-   In case the field represents a relational association entity, then add the field `filterName` to the `@Filterable` annotation in order to specify, with dot notation, the related entity field the filter will be applied to.  
+   In case the field represents a relational association entity, then add the field `filterName` to the `@Filterable` annotation in order to specify, with dot notation, the related entity's field the filter will be applied to.  
    For example, the [`BusinessService`](src/main/java/io/tackle/controls/entities/BusinessService.java) entity has an association with `Stakeholder` entity through the `owner` field.  
    Since it has been decided the `Stakeholder`'s field to filter by is the `displayName`, the `owner` field has been annotated in this way:
    ```java
@@ -138,10 +139,11 @@ For creating the `Foo` resource, follow these steps:
     }
    ```
    in this way the REST Data Panache extension will be used for providing all endpoints but the "list" one because we need filtering for lists which is not provided (yet?) from that Quarkus extension.
-1. to add the "list" endpoints (both plain JSON and HAL), add `FooListFilteredResource.java` class in [`src/main/java/io/tackle/controls/resources/`](src/main/java/io/tackle/controls/resources/) adapting this template class:
+1. to add the "list" endpoints (both plain JSON and HAL-JSON), add `FooListFilteredResource.java` class in [`src/main/java/io/tackle/controls/resources/`](src/main/java/io/tackle/controls/resources/) adapting this template class:
    ```java
    package io.tackle.controls.resources;
-   
+
+   import io.tackle.commons.resources.ListFilteredResource;
    import io.tackle.controls.entities.Foo;
    import org.jboss.resteasy.links.LinkResource;
    
@@ -170,29 +172,27 @@ For creating the `Foo` resource, follow these steps:
                entityClassName = "io.tackle.controls.entities.Foo",
                rel = "list"
        )
-       public Response list(@QueryParam("sort") List var1,
-                            @QueryParam("page") @DefaultValue("0") int var2,
-                            @QueryParam("size") @DefaultValue("20") int var3,
-                            @QueryParam("filter") @DefaultValue("") String filter,
+       public Response list(@QueryParam(QUERY_PARAM_SORT) @DefaultValue(DEFAULT_VALUE_SORT) List var1,
+                            @QueryParam(QUERY_PARAM_PAGE) @DefaultValue(DEFAULT_VALUE_PAGE) int var2,
+                            @QueryParam(QUERY_PARAM_SIZE) @DefaultValue(DEFAULT_VALUE_SIZE) int var3,
                             @Context UriInfo var4) throws Exception {
-           return ListFilteredResource.super.list(var1, var2, var3, filter, var4, false);
+           return ListFilteredResource.super.list(var1, var2, var3, var4, false);
        }
    
        @Path("")
        @GET
        @Produces({"application/hal+json"})
-       public Response listHal(@QueryParam("sort") List var1,
-                               @QueryParam("page") @DefaultValue("0") int var2,
-                               @QueryParam("size") @DefaultValue("20") int var3,
-                               @QueryParam("filter") @DefaultValue("") String filter,
+       public Response listHal(@QueryParam(QUERY_PARAM_SORT) @DefaultValue(DEFAULT_VALUE_SORT) List var1,
+                               @QueryParam(QUERY_PARAM_PAGE) @DefaultValue(DEFAULT_VALUE_PAGE) int var2,
+                               @QueryParam(QUERY_PARAM_SIZE) @DefaultValue(DEFAULT_VALUE_SIZE) int var3,
                                @Context UriInfo var4) throws Exception {
-           return ListFilteredResource.super.list(var1, var2, var3, filter, var4, true);
+           return ListFilteredResource.super.list(var1, var2, var3, var4, true);
        }
    }
    ```
 1. start the application in dev mode following [Running the application in dev mode](#running-the-application-in-dev-mode)
-1. open a browser to http://localhost:8080/controls/q/swagger-ui/, this will trigger code reload
-1. check the application's log in terminal to retrieve Hibernate output about table creation, something like:
+1. open a browser to http://localhost:8080/controls/q/swagger-ui/ to trigger code reload
+1. check the application's log in terminal to retrieve Hibernate output about `Foo` entity's table, keys and indexes creation, something like:
    ```sql
    Hibernate: 
     
@@ -202,10 +202,21 @@ For creating the `Foo` resource, follow these steps:
         primary key (id)
     )
    ```
-   and copy all the SQL instructions needed to manage the new `Foo` resource
-1. create a `Vyyyymmdd__init_foo.sql` file (e.g. `V20200928__create_business-service.sql`) in [`src/main/resources/db/migration/`](src/main/resources/db/migration) folder (refer to [Flyway](#flyway) paragraph)
-1. paste inside the `Vyyyymmdd__init_foo.sql` file all the previously copied SQL instructions
+1. copy all the SQL instructions needed to manage the new `Foo` resource
+1. create a `Vyyyymmdd__create_foo.sql` file (e.g. `V20200928__create_business-service.sql`) in [`src/main/resources/db/migration/`](src/main/resources/db/migration) folder (refer to [Flyway](#flyway) paragraph)
+1. paste inside the `Vyyyymmdd__create_foo.sql` file all the previously copied SQL DDL instructions
 1. for tests execution, add test data into the database creating a `Vyyyymmdd__insert_foo.sql` file (e.g. `V20201210__insert_business-service.sql`) in [`src/main/resources/db/test-data/`](src/main/resources/db/test-data) folder (refer to [Flyway](#flyway) paragraph)
+1. create a new test `FooTest` class into [`src/test/java/io/tackle/controls/resources`](src/test/java/io/tackle/controls/resources) folder and add test for the REST endpoints.
+   A "reference" test class and methods is [`BusinessServiceTest`](src/test/java/io/tackle/controls/resources/BusinessServiceTest.java)
+1. create a new test `NativeFooIT` class into [`src/test/java/io/tackle/controls/resources`](src/test/java/io/tackle/controls/resources) folder adapting this template class:
+   ```java
+   package io.tackle.controls.resources;
+
+   import io.quarkus.test.junit.NativeImageTest;
+   
+   @NativeImageTest
+   public class NativeFooIT extends FooTest {}
+   ```
 
 ### Change a resource
 
@@ -245,7 +256,7 @@ More information available in [Dump the Generated Classes to the File System](ht
 ### Tests environment
 
 The tests can be run without having to start any external components.  
-In some situations, for example during development when you run multiple times in a short time the tests, it might be desiderable to speed up the tests execution.  
+At the same time, there're situations, for example during development, when you run multiple times in a short time the tests and so it would be good to speed up the tests' execution.  
 If the `TACKLE_KEYCLOAK_TEST_URL` environment variable is provided, the tests won't start the Keycloak testcontainer saving its startup time during tests execution.  
 Keycloak can be started following the instructions above in [Keycloak](#keycloak) paragraph.  
 Once Keycloak is started, set the `TACKLE_KEYCLOAK_TEST_URL` environment variable executing:
@@ -263,19 +274,19 @@ In this way the tests will use this provided Keycloak instance instead of starti
 ### Testing native mode
 
 `$ ./mvnw verify -Pnative -Dquarkus-profile=test`  
-where the `quarkus-profile=test` property is mandatory to force the build the native image using the `test` profile since otherwise the default `prod` profile would be used. 
+where the `quarkus-profile=test` property is mandatory to force the build of the native image to use the `test` profile, otherwise the default `prod` profile would be used. 
 
 If you want to just execute (again) the native tests without building again the native image, use the following command:  
-`$ ./mvnw test-compile failsafe:integration-test -Pnative`
+`$ ./mvnw test-compile failsafe:integration-test@tackle-controls-IT -Pnative`
 
 ## Package and run locally
 
 ### JVM mode
 The application can be packaged using the `$ ./mvnw package` command.  
-It produces the `controls-0.0.1-SNAPSHOT-runner.jar` file in the `/target` directory.  
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/lib` directory.
+It produces the `quarkus-run.jar` file in the `/target/quarkus-app` directory.  
+Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/` subfolders.
 
-The application is now runnable using `java -jar target/controls-0.0.1-SNAPSHOT-runner.jar`.
+The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
 
 ### Native mode
 
@@ -339,6 +350,13 @@ $ export access_token=$(\
  )
 $ curl -X GET "$(minikube service --url=true controls -n tackle)/controls/business-service?description=ser&sort=name" \
   -H 'Accept: application/json' -H "Authorization: Bearer "$access_token |jq .
+```
+
+#### Insert test data
+
+Execute the script:
+```shell
+$ ./src/main/resources/import-curl-remotely.sh http://192.169.17.2
 ```
 
 ### Kubernetes
