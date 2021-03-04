@@ -172,23 +172,21 @@ For creating the `Foo` resource, follow these steps:
                entityClassName = "io.tackle.controls.entities.Foo",
                rel = "list"
        )
-       public Response list(@QueryParam("sort") List var1,
-                            @QueryParam("page") @DefaultValue("0") int var2,
-                            @QueryParam("size") @DefaultValue("20") int var3,
-                            @QueryParam("filter") @DefaultValue("") String filter,
+       public Response list(@QueryParam(QUERY_PARAM_SORT) @DefaultValue(DEFAULT_VALUE_SORT) List var1,
+                            @QueryParam(QUERY_PARAM_PAGE) @DefaultValue(DEFAULT_VALUE_PAGE) int var2,
+                            @QueryParam(QUERY_PARAM_SIZE) @DefaultValue(DEFAULT_VALUE_SIZE) int var3,
                             @Context UriInfo var4) throws Exception {
-           return ListFilteredResource.super.list(var1, var2, var3, filter, var4, false);
+           return ListFilteredResource.super.list(var1, var2, var3, var4, false);
        }
    
        @Path("")
        @GET
        @Produces({"application/hal+json"})
-       public Response listHal(@QueryParam("sort") List var1,
-                               @QueryParam("page") @DefaultValue("0") int var2,
-                               @QueryParam("size") @DefaultValue("20") int var3,
-                               @QueryParam("filter") @DefaultValue("") String filter,
+       public Response listHal(@QueryParam(QUERY_PARAM_SORT) @DefaultValue(DEFAULT_VALUE_SORT) List var1,
+                               @QueryParam(QUERY_PARAM_PAGE) @DefaultValue(DEFAULT_VALUE_PAGE) int var2,
+                               @QueryParam(QUERY_PARAM_SIZE) @DefaultValue(DEFAULT_VALUE_SIZE) int var3,
                                @Context UriInfo var4) throws Exception {
-           return ListFilteredResource.super.list(var1, var2, var3, filter, var4, true);
+           return ListFilteredResource.super.list(var1, var2, var3, var4, true);
        }
    }
    ```
@@ -279,7 +277,7 @@ In this way the tests will use this provided Keycloak instance instead of starti
 where the `quarkus-profile=test` property is mandatory to force the build of the native image to use the `test` profile, otherwise the default `prod` profile would be used. 
 
 If you want to just execute (again) the native tests without building again the native image, use the following command:  
-`$ ./mvnw test-compile failsafe:integration-test -Pnative`
+`$ ./mvnw test-compile failsafe:integration-test@tackle-controls-IT -Pnative`
 
 ## Package and run locally
 
