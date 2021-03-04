@@ -22,7 +22,7 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2  
     - name: Build with Maven
-      run: mvn -B test --file pom.xml
+      run: mvn -U -B test --file pom.xml
 
   integration-native-test:
 
@@ -41,7 +41,7 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2  
     - name: Build with Maven
-      run: mvn -B verify -Pnative -Dquarkus-profile=test --file pom.xml
+      run: mvn -U -B verify -Pnative -Dquarkus-profile=test --file pom.xml
 
   build-jvm-container:
     name: Build and push JVM image
@@ -64,7 +64,7 @@ jobs:
     - name: Inject slug/short variables
       uses: rlespinasse/github-slug-action@v3.x
     - name: Build Image for main branch with Maven
-      run: mvn -B package --file pom.xml -Pcontainer-image -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.group=${{ github.repository_owner }} -Dquarkus.container-image.additional-tags=latest-jar -Dquarkus.container-image.registry=${{ secrets.QUAY_REPO }} -Dquarkus.container-image.username=${{ secrets.QUAY_ROBOT_USERNAME }} -Dquarkus.container-image.password=${{ secrets.QUAY_ROBOT_TOKEN }}
+      run: mvn -U -B package --file pom.xml -Pcontainer-image -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.group=${{ github.repository_owner }} -Dquarkus.container-image.additional-tags=latest-jar -Dquarkus.container-image.registry=${{ secrets.QUAY_REPO }} -Dquarkus.container-image.username=${{ secrets.QUAY_ROBOT_USERNAME }} -Dquarkus.container-image.password=${{ secrets.QUAY_ROBOT_TOKEN }}
 
   build-native-container:
     name: Build and push native image
@@ -87,7 +87,7 @@ jobs:
     - name: Inject slug/short variables
       uses: rlespinasse/github-slug-action@v3.x
     - name: Build Image for main branch with Maven
-      run: mvn -B package --file pom.xml -Pcontainer-image -Pnative -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.group=${{ github.repository_owner }} -Dquarkus.container-image.additional-tags=latest-native -Dquarkus.container-image.registry=${{ secrets.QUAY_REPO }} -Dquarkus.container-image.username=${{ secrets.QUAY_ROBOT_USERNAME }} -Dquarkus.container-image.password=${{ secrets.QUAY_ROBOT_TOKEN }}
+      run: mvn -U -B package --file pom.xml -Pcontainer-image -Pnative -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.group=${{ github.repository_owner }} -Dquarkus.container-image.additional-tags=latest-native -Dquarkus.container-image.registry=${{ secrets.QUAY_REPO }} -Dquarkus.container-image.username=${{ secrets.QUAY_ROBOT_USERNAME }} -Dquarkus.container-image.password=${{ secrets.QUAY_ROBOT_TOKEN }}
 
   code-coverage:
     runs-on: ubuntu-latest
@@ -105,7 +105,7 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Generate jacoco report
-        run: mvn verify -Pjacoco --file pom.xml
+        run: mvn -U verify -Pjacoco --file pom.xml
       - uses: codecov/codecov-action@v1
         with:
           file: ./target/site/jacoco-ut/jacoco.xml
