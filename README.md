@@ -287,7 +287,7 @@ You can then execute your native executable with: `./target/controls-0.0.1-SNAPS
 
 To get the report of test coverage of the application's code it's a matter of activating the `coverage` Maven profile during `verify` Maven goal execution like in the following command:  
 ```shell
-$ ./mvnw verify -Pcoverage
+$ ./mvnw verify -Pjacoco
 ```
 
 at the end the report will be available opening in a browser the `target/site/jacoco-ut/index.html` file.  
