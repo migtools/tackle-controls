@@ -281,8 +281,10 @@ If you want to just execute (again) the native tests without building again the 
 
 ## Package and run locally
 
+Before starting locally the application, start the [Required components](#required-components).
+
 ### JVM mode
-The application can be packaged using the `$ ./mvnw package` command.  
+The application can be packaged using the `$ ./mvnw package -Dquarkus-profile=local` command.  
 It produces the `quarkus-run.jar` file in the `/target/quarkus-app` directory.  
 Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/` subfolders.
 
@@ -290,9 +292,9 @@ The application is now runnable using `java -jar target/quarkus-app/quarkus-run.
 
 ### Native mode
 
-You can create a native executable using: `$ ./mvnw package -Pnative -Dquarkus.native.container-build=true`  
+You can create a native executable using: `$ ./mvnw package -Dquarkus-profile=local -Pnative -Dquarkus.native.container-build=true`  
 If you have GraalVM installed locally, you can run the native executable build without the `-Dquarkus.native.container-build=true` option.  
-You can then execute your native executable with: `./target/controls-0.0.1-SNAPSHOT-runner`  
+You can then run the application in native mode executing: `$ ./target/controls-*-runner`  
 
 ### Test coverage
 
