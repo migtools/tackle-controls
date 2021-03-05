@@ -32,6 +32,13 @@
       "required": true
     },
     {
+      "displayName": "Application Inventory REST container images",
+      "description": "The value of the Application Inventory REST container image to be used",
+      "name": "APPLICATION_INVENTORY_REST_CONTAINER_IMAGE",
+      "value": "quay.io/konveyor/tackle-application-inventory:0.0.1-SNAPSHOT-native",
+      "required": true
+    },
+    {
       "displayName": "Controls Database Username",
       "description": "Controls database user name",
       "name": "CONTROLS_DATASOURCE_USERNAME",
@@ -43,6 +50,22 @@
       "displayName": "Controls Database Password",
       "description": "Controls database user password",
       "name": "CONTROLS_DATASOURCE_PASSWORD",
+      "from": "[a-zA-Z0-9]{8}",
+      "generate": "expression",
+      "required": true
+    },
+    {
+      "displayName": "Application Inventory Database Username",
+      "description": "Application Inventory database user name",
+      "name": "APPLICATION_INVENTORY_DATASOURCE_USERNAME",
+      "from": "user[a-zA-Z0-9]{3}",
+      "generate": "expression",
+      "required": true
+    },
+    {
+      "displayName": "Application Inventory Database Password",
+      "description": "Application Inventory database user password",
+      "name": "APPLICATION_INVENTORY_DATASOURCE_PASSWORD",
       "from": "[a-zA-Z0-9]{8}",
       "generate": "expression",
       "required": true
@@ -74,6 +97,30 @@
           "app.kubernetes.io/name": "controls-postgresql",
           "app.kubernetes.io/component": "database",
           "app.kubernetes.io/instance": "controls-postgresql",
+          "app.kubernetes.io/part-of": "tackle"
+        }
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "1Gi"
+          }
+        },
+        "volumeMode": "Filesystem"
+      }
+    },
+    {
+      "kind": "PersistentVolumeClaim",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "application-inventory-postgresql",
+        "labels": {
+          "app.kubernetes.io/name": "application-inventory-postgresql",
+          "app.kubernetes.io/component": "database",
+          "app.kubernetes.io/instance": "application-inventory-postgresql",
           "app.kubernetes.io/part-of": "tackle"
         }
       },
@@ -129,6 +176,25 @@
         "database-name": "controls_db",
         "database-password": "${CONTROLS_DATASOURCE_PASSWORD}",
         "database-user": "${CONTROLS_DATASOURCE_USERNAME}"
+      },
+      "type": "Opaque"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "application-inventory-postgresql",
+        "labels": {
+          "app.kubernetes.io/name": "application-inventory-postgresql",
+          "app.kubernetes.io/component": "database",
+          "app.kubernetes.io/instance": "application-inventory-postgresql",
+          "app.kubernetes.io/part-of": "tackle"
+        }
+      },
+      "stringData": {
+        "database-name": "application_inventory_db",
+        "database-password": "${APPLICATION_INVENTORY_DATASOURCE_USERNAME}",
+        "database-user": "${APPLICATION_INVENTORY_DATASOURCE_USERNAME}"
       },
       "type": "Opaque"
     },
@@ -542,6 +608,36 @@
       }
     },
     {
+      "kind": "Service",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "application-inventory-postgresql",
+        "labels": {
+          "app.kubernetes.io/name": "application-inventory-postgres",
+          "app.kubernetes.io/version": "10.6",
+          "app.kubernetes.io/component": "database",
+          "app.kubernetes.io/instance": "application-inventory-postgres",
+          "app.kubernetes.io/part-of": "tackle"
+        }
+      },
+      "spec": {
+        "ports": [
+          {
+            "name": "tcp",
+            "protocol": "TCP",
+            "port": 5432,
+            "targetPort": 5432
+          }
+        ],
+        "selector": {
+          "app.kubernetes.io/name": "application-inventory-postgres",
+          "app.kubernetes.io/version": "10.6"
+        },
+        "type": "ClusterIP",
+        "sessionAffinity": "None"
+      }
+    },
+    {
       "kind": "Deployment",
       "apiVersion": "apps/v1",
       "metadata": {
@@ -682,6 +778,143 @@
       "kind": "Deployment",
       "apiVersion": "apps/v1",
       "metadata": {
+        "name": "application-inventory-postgres",
+        "labels": {
+          "app.kubernetes.io/name": "application-inventory-postgres",
+          "app.kubernetes.io/version": "10.6",
+          "app.kubernetes.io/component": "database",
+          "app.kubernetes.io/instance": "application-inventory-postgres",
+          "app.kubernetes.io/part-of": "tackle"
+        }
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app.kubernetes.io/name": "application-inventory-postgres",
+            "app.kubernetes.io/version": "10.6"
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app.kubernetes.io/name": "application-inventory-postgres",
+              "app.kubernetes.io/version": "10.6"
+            }
+          },
+          "spec": {
+            "volumes": [
+              {
+                "name": "application-inventory-postgresql-data",
+                "persistentVolumeClaim": {
+                  "claimName": "application-inventory-postgresql"
+                }
+              }
+            ],
+            "containers": [
+              {
+                "name": "postgres",
+                "image": "quay.io/konveyor/tackle-postgres:10.6",
+                "ports": [
+                  {
+                    "containerPort": 5432,
+                    "protocol": "TCP"
+                  }
+                ],
+                "env": [
+                  {
+                    "name": "POSTGRES_USER",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "application-inventory-postgresql",
+                        "key": "database-user"
+                      }
+                    }
+                  },
+                  {
+                    "name": "POSTGRES_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "application-inventory-postgresql",
+                        "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "POSTGRES_DB",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "application-inventory-postgresql",
+                        "key": "database-name"
+                      }
+                    }
+                  }
+                ],
+                "resources": {},
+                "livenessProbe": {
+                  "exec": {
+                    "command": [
+                      "/bin/sh",
+                      "-c",
+                      "psql -U $POSTGRES_USER -d $POSTGRES_DB -c 'SELECT 1'\n"
+                    ]
+                  },
+                  "initialDelaySeconds": 60,
+                  "timeoutSeconds": 10,
+                  "periodSeconds": 10,
+                  "successThreshold": 1,
+                  "failureThreshold": 3
+                },
+                "readinessProbe": {
+                  "exec": {
+                    "command": [
+                      "/bin/sh",
+                      "-c",
+                      "psql -U $POSTGRES_USER -d $POSTGRES_DB -c 'SELECT 1'\n"
+                    ]
+                  },
+                  "initialDelaySeconds": 10,
+                  "timeoutSeconds": 1,
+                  "periodSeconds": 10,
+                  "successThreshold": 1,
+                  "failureThreshold": 3
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "imagePullPolicy": "IfNotPresent",
+                "volumeMounts": [
+                  {
+                    "name": "application-inventory-postgresql-data",
+                    "mountPath": "/var/lib/postgresql"
+                  }
+                ],
+                "securityContext": {
+                  "privileged": false
+                }
+              }
+            ],
+            "restartPolicy": "Always",
+            "terminationGracePeriodSeconds": 30,
+            "dnsPolicy": "ClusterFirst",
+            "securityContext": {},
+            "schedulerName": "default-scheduler"
+          }
+        },
+        "strategy": {
+          "type": "RollingUpdate",
+          "rollingUpdate": {
+            "maxUnavailable": "25%",
+            "maxSurge": "25%"
+          }
+        },
+        "revisionHistoryLimit": 10,
+        "progressDeadlineSeconds": 600
+      }
+    },
+    {
+      "kind": "Deployment",
+      "apiVersion": "apps/v1",
+      "metadata": {
         "name": "tackle-ui",
         "labels": {
           "app.kubernetes.io/name": "tackle-ui",
@@ -726,6 +959,10 @@
                   {
                     "name": "CONTROLS_API_URL",
                     "value": "http://tackle-controls:8080"
+                  },
+                  {
+                    "name": "APPLICATION_INVENTORY_API_URL",
+                    "value": "http://tackle-application-inventory:8080"
                   },
                   {
                     "name": "SSO_REALM",
@@ -844,6 +1081,39 @@
       }
     },
     {
+      "apiVersion" : "v1",
+      "kind" : "Service",
+      "metadata" : {
+        "annotations" : {
+          "prometheus.io/scheme" : "http",
+          "prometheus.io/scrape" : "true",
+          "prometheus.io/path" : "/q/metrics",
+          "prometheus.io/port" : "8080"
+        },
+        "labels" : {
+          "app.kubernetes.io/name" : "tackle-application-inventory",
+          "app.kubernetes.io/part-of" : "tackle",
+          "app.kubernetes.io/version" : "0.0.1-SNAPSHOT-native",
+          "app.kubernetes.io/component" : "rest",
+          "app.openshift.io/runtime" : "quarkus"
+        },
+        "name" : "tackle-application-inventory"
+      },
+      "spec" : {
+        "ports" : [ {
+          "name" : "http",
+          "port" : 8080,
+          "targetPort" : 8080
+        } ],
+        "selector" : {
+          "app.kubernetes.io/name" : "tackle-application-inventory",
+          "app.kubernetes.io/part-of" : "tackle",
+          "app.kubernetes.io/version" : "0.0.1-SNAPSHOT-native"
+        },
+        "type" : "ClusterIP"
+      }
+    },
+    {
       "apiVersion" : "apps/v1",
       "kind" : "Deployment",
       "metadata" : {
@@ -935,6 +1205,111 @@
                 "failureThreshold" : 3,
                 "httpGet" : {
                   "path" : "/controls/q/health/ready",
+                  "port" : 8080,
+                  "scheme" : "HTTP"
+                },
+                "initialDelaySeconds" : 0,
+                "periodSeconds" : 30,
+                "successThreshold" : 1,
+                "timeoutSeconds" : 10
+              }
+            } ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion" : "apps/v1",
+      "kind" : "Deployment",
+      "metadata" : {
+        "annotations" : {
+          "prometheus.io/port" : "8080",
+          "prometheus.io/scheme" : "http",
+          "prometheus.io/scrape" : "true",
+          "prometheus.io/path" : "/q/metrics"
+        },
+        "labels" : {
+          "app.kubernetes.io/component" : "rest",
+          "app.kubernetes.io/version" : "0.0.1-SNAPSHOT-native",
+          "app.kubernetes.io/name" : "tackle-application-inventory",
+          "app.kubernetes.io/part-of" : "tackle"
+        },
+        "name" : "tackle-application-inventory"
+      },
+      "spec" : {
+        "replicas" : 1,
+        "selector" : {
+          "matchLabels" : {
+            "app.kubernetes.io/version" : "0.0.1-SNAPSHOT-native",
+            "app.kubernetes.io/name" : "tackle-application-inventory",
+            "app.kubernetes.io/part-of" : "tackle"
+          }
+        },
+        "template" : {
+          "metadata" : {
+            "annotations" : {
+              "prometheus.io/port" : "8080",
+              "prometheus.io/scheme" : "http",
+              "prometheus.io/scrape" : "true",
+              "prometheus.io/path" : "/q/metrics"
+            },
+            "labels" : {
+              "app.kubernetes.io/component" : "rest",
+              "app.kubernetes.io/version" : "0.0.1-SNAPSHOT-native",
+              "app.kubernetes.io/name" : "tackle-application-inventory",
+              "app.kubernetes.io/part-of" : "tackle"
+            }
+          },
+          "spec" : {
+            "containers" : [ {
+              "env" : [ {
+                "name" : "KUBERNETES_NAMESPACE",
+                "valueFrom" : {
+                  "fieldRef" : {
+                    "fieldPath" : "metadata.namespace"
+                  }
+                }
+              }, {
+                "name" : "QUARKUS_DATASOURCE_USERNAME",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "application-inventory-postgresql",
+                    "key": "database-user"
+                  }
+                }
+              }, {
+                "name" : "QUARKUS_DATASOURCE_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "application-inventory-postgresql",
+                    "key": "database-password"
+                  }
+                }
+              } ],
+              "image" : "${APPLICATION_INVENTORY_REST_CONTAINER_IMAGE}",
+              "imagePullPolicy" : "Always",
+              "livenessProbe" : {
+                "failureThreshold" : 3,
+                "httpGet" : {
+                  "path" : "/application-inventory/q/health/live",
+                  "port" : 8080,
+                  "scheme" : "HTTP"
+                },
+                "initialDelaySeconds" : 0,
+                "periodSeconds" : 30,
+                "successThreshold" : 1,
+                "timeoutSeconds" : 10
+              },
+              "name" : "tackle-application-inventory",
+              "ports" : [ {
+                "containerPort" : 8080,
+                "name" : "http",
+                "protocol" : "TCP"
+              } ],
+              "readinessProbe" : {
+                "failureThreshold" : 3,
+                "httpGet" : {
+                  "path" : "/application-inventory/q/health/ready",
                   "port" : 8080,
                   "scheme" : "HTTP"
                 },
