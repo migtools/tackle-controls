@@ -9,13 +9,13 @@ import io.tackle.commons.testcontainers.KeycloakTestResource;
 import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
 import io.tackle.controls.entities.BusinessService;
+import io.tackle.controls.entities.JobFunction;
 import io.tackle.controls.entities.Stakeholder;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 // https://github.com/konveyor/tackle-controls/issues/9
 @QuarkusTest
@@ -36,8 +36,22 @@ public class Issue9Test extends SecuredResourceTest {
 
     @Test
     public void testIssue9() {
+        // add a job function
+        JobFunction developer = new JobFunction();
+        developer.role = "Developer";
+        Response developerResponse = given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(developer)
+                .when().post("/job-function")
+                .then()
+                .statusCode(201).extract().response();
+        Long developerId = Long.valueOf(developerResponse.path("id").toString());
+
+        // add stakeholder with job function
         Stakeholder owner = new Stakeholder();
         owner.displayName = "Owner";
+        owner.jobFunction = developerResponse.as(JobFunction.class);
         Response ownerResponse = given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -48,6 +62,20 @@ public class Issue9Test extends SecuredResourceTest {
                 .statusCode(201).extract().response();
         Long ownerId = Long.valueOf(ownerResponse.path("id").toString());
 
+        // check the stakeholder has the job function
+        given()
+                .accept("application/json")
+                .queryParam("displayName", "wne")
+                .when().get("/stakeholder")
+                .then()
+                .log().all()
+                .statusCode(200)
+                .body("displayName[0]", is("Owner"),
+                        "jobFunction[0].role", is("Developer"),
+                        "id[0]", is(ownerId.intValue()),
+                        "size()", is(1));
+
+        // add business service with owner
         BusinessService businessService = new BusinessService();
         businessService.name = "Business Service";
         businessService.owner = ownerResponse.as(Stakeholder.class);
@@ -63,6 +91,7 @@ public class Issue9Test extends SecuredResourceTest {
                 .statusCode(201).extract().response();
         Long businessServiceId = Long.valueOf(businessServiceResponse.path("id").toString());
 
+        // check the business service has the owner
         given()
                 .accept("application/json")
                 .queryParam("name", "business")
@@ -75,11 +104,32 @@ public class Issue9Test extends SecuredResourceTest {
                         "id[0]", is(businessServiceId.intValue()),
                         "size()", is(1));
 
+        // delete the job function
+        given()
+            .pathParam("id", developerId)
+            .when().delete("/job-function/{id}")
+            .then().statusCode(204);
+
+        // check the stakeholder has the job function de-referenced
+        given()
+                .accept("application/json")
+                .queryParam("displayName", "wne")
+                .when().get("/stakeholder")
+                .then()
+                .log().all()
+                .statusCode(200)
+                .body("displayName[0]", is("Owner"),
+                        "jobFunction[0]", is(emptyOrNullString()),
+                        "id[0]", is(ownerId.intValue()),
+                        "size()", is(1));
+
+        // delete the stakeholder
         given()
             .pathParam("id", ownerId)
             .when().delete("/stakeholder/{id}")
             .then().statusCode(204);
 
+        // check the business service has the owner de-referenced
         given()
             .accept("application/json")
             .queryParam("name", "business")

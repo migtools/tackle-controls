@@ -7,6 +7,7 @@ import io.quarkus.test.common.ResourceArg;
 import io.tackle.commons.testcontainers.KeycloakTestResource;
 import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
+import io.tackle.controls.entities.JobFunction;
 import io.tackle.controls.entities.Stakeholder;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -142,7 +143,9 @@ public class StakeholderTest extends SecuredResourceTest {
     public void testStakeholderCreateAndDeleteEndpoint() {
         Stakeholder stakeholder = new Stakeholder();
         stakeholder.displayName = "John Smith";
-        stakeholder.jobFunction = "CEO";
+        JobFunction consultant = new JobFunction();
+        consultant.id = 7L;
+        stakeholder.jobFunction = consultant;
         stakeholder.email = "another@email.foo";
 
         Response response = given()
