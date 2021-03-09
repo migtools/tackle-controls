@@ -7,12 +7,7 @@ import org.hibernate.annotations.ResultCheckStyle;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.PreRemove;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,8 +27,13 @@ public class Stakeholder extends AbstractEntity {
     @JsonBackReference
     public List<BusinessService> businessServices = new ArrayList<>();
 
+    @ManyToMany(mappedBy = "stakeholders", fetch = FetchType.LAZY)
+    @JsonBackReference
+    public List<StakeholderGroup> stakeholderGroups = new ArrayList<>();
+
     @PreRemove
     private void preRemove() {
         businessServices.forEach(businessService -> businessService.owner = null);
+        stakeholderGroups.forEach(stakeholderGroup -> stakeholderGroup.stakeholders.remove(this));
     }
 }
