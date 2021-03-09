@@ -132,6 +132,8 @@ For creating the `Foo` resource, follow these steps:
     import io.quarkus.rest.data.panache.ResourceProperties;
     import io.tackle.controls.entities.Foo;
     
+    import java.util.List;
+   
     @ResourceProperties(hal = true)
     public interface FooResource extends PanacheEntityResource<Foo, Long> {
        @MethodProperties(exposed = false)
