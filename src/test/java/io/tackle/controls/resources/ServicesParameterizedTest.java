@@ -11,6 +11,7 @@ import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
 import io.tackle.controls.entities.JobFunction;
 import io.tackle.controls.entities.Stakeholder;
+import io.tackle.controls.entities.TagType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.converter.ArgumentConversionException;
@@ -51,10 +52,11 @@ public class ServicesParameterizedTest extends SecuredResourceTest {
     @CsvSource({
             "stakeholder     , 2, 4::5          , 2 , 4, displayName, Jessica Fletcher::Emmett Brown                              ",
             "business-service, 3, 1::2::3       , 3 , 4, name       , Home Banking BU::Online Investments service::Credit Cards BS",
-            "job-function    , 5, 6::7::8::9::10, 12, 5, role       , Business Analyst::Business Service Owner / Manager::Consultant::DBA::Developer / Software Engineer"
+            "job-function    , 5, 6::7::8::9::10, 12, 5, role       , Business Analyst::Business Service Owner / Manager::Consultant::DBA::Developer / Software Engineer",
+            "tag-type        , 3, 18::19::20    , 3 , 4, colour     , #123456::#111111::#999999"
     })
     public void testListEndpoints(String resource, int size, @ConvertWith(CSVtoArray.class) Integer[] ids, int totalCount, int linkSize,
-                                    String anotherFieldName, @ConvertWith(CSVtoArray.class) String[] anotherFieldValues) {
+                                  String anotherFieldName, @ConvertWith(CSVtoArray.class) String[] anotherFieldValues) {
         given()
                 .accept("application/hal+json")
                 .queryParam("sort", "id")
@@ -132,9 +134,15 @@ public class ServicesParameterizedTest extends SecuredResourceTest {
         JobFunction ceo = new JobFunction();
         ceo.role = "CEO";
 
+        TagType tagType = new TagType();
+        tagType.name = "Red";
+        tagType.rank = 1;
+        tagType.colour = "#FF0000";
+
         return Stream.of(
                 Arguments.of(stakeholder, "/stakeholder"),
-                Arguments.of(ceo, "/job-function")
+                Arguments.of(ceo, "/job-function"),
+                Arguments.of(tagType, "/tag-type")
         );
     }
 
