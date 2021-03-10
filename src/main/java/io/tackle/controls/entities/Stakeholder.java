@@ -27,7 +27,7 @@ public class Stakeholder extends AbstractEntity {
     @JsonBackReference
     public List<BusinessService> businessServices = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "stakeholders", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "stakeholders", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     @JsonBackReference
     public List<StakeholderGroup> stakeholderGroups = new ArrayList<>();
 

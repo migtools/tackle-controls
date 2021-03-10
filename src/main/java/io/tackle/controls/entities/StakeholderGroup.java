@@ -21,8 +21,13 @@ public class StakeholderGroup extends AbstractEntity {
     @Filterable
     public String description;
 
-    @ManyToMany(mappedBy = "stakeholderGroups", fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JsonBackReference
+    @JoinTable(
+            name = "stakeholdergroup_stakeholders",
+            joinColumns = {@JoinColumn(name = "group_id")},
+            inverseJoinColumns = {@JoinColumn(name = "stakeholder_id")}
+    )
     public List<Stakeholder> stakeholders = new ArrayList<>();
 
     @Filterable
