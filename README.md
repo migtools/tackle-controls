@@ -45,6 +45,13 @@ $ podman run -it --rm=true --memory-swappiness=0 \
             -e POSTGRES_PASSWORD=controls -e POSTGRES_DB=controls_db \
             -p 5432:5432 postgres:10.6
 ```
+If running on Fedora 32 or below, remove the --memory-swappiness switch, executing:
+```Shell
+$ podman run -it --rm=true \
+            --name postgres-controls -e POSTGRES_USER=controls \
+            -e POSTGRES_PASSWORD=controls -e POSTGRES_DB=controls_db \
+            -p 5432:5432 postgres:10.6
+```
 It works the same with Docker just replacing `podman` with `docker` in the above command.
 
 #### Keycloak
