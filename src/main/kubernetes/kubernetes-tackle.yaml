@@ -162,7 +162,7 @@ spec:
             claimName: keycloak-postgresql
       containers:
         - name: postgres
-          image: quay.io/konveyor/tackle-postgres:10.6
+          image: postgres:10.6
           ports:
             - containerPort: 5432
               protocol: TCP
@@ -253,7 +253,7 @@ spec:
           emptyDir: {}
       initContainers:
         - name: keycloak-theme
-          image: quay.io/konveyor/tackle-busybox:1.32.1
+          image: busybox:stable
           command:
             - wget
             - "-P"
@@ -262,9 +262,10 @@ spec:
           volumeMounts:
             - name: theme-volume
               mountPath: /deployments
+          imagePullPolicy: IfNotPresent
       containers:
         - name: keycloak
-          image: quay.io/keycloak/keycloak:12.0.2
+          image: quay.io/keycloak/keycloak:12.0.4
           env:
             - name: KEYCLOAK_USER
               value: "admin"
@@ -2120,7 +2121,7 @@ spec:
             claimName: controls-postgresql
       containers:
         - name: postgres
-          image: 'quay.io/konveyor/tackle-postgres:10.6'
+          image: 'postgres:10.6'
           ports:
             - containerPort: 5432
               protocol: TCP
@@ -2214,7 +2215,7 @@ spec:
             claimName: application-inventory-postgresql
       containers:
         - name: postgres
-          image: quay.io/konveyor/tackle-postgres:10.6
+          image: postgres:10.6
           ports:
             - containerPort: 5432
               protocol: TCP
