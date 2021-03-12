@@ -1,0 +1,3 @@
+INSERT INTO stakeholder_group (id, name, description, createUser, createTime, updateUser, updateTime, deleted) VALUES (nextval('hibernate_sequence'), 'Managers', 'Managers Group', '<pre-filled>', CURRENT_TIMESTAMP, '<pre-filled>', CURRENT_TIMESTAMP, false);
+INSERT INTO stakeholder_group (id, name, description, createUser, createTime, updateUser, updateTime, deleted) VALUES (nextval('hibernate_sequence'), 'Engineers', 'Engineers Group', '<pre-filled>', CURRENT_TIMESTAMP, '<pre-filled>', CURRENT_TIMESTAMP, false);
+INSERT INTO stakeholder_group (id, name, description, createUser, createTime, updateUser, updateTime, deleted) VALUES (nextval('hibernate_sequence'), 'Marketing', 'Marketing Group', '<pre-filled>', CURRENT_TIMESTAMP, '<pre-filled>', CURRENT_TIMESTAMP, false);
