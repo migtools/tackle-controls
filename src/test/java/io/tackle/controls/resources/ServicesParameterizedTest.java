@@ -11,6 +11,7 @@ import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
 import io.tackle.controls.entities.JobFunction;
 import io.tackle.controls.entities.Stakeholder;
+import io.tackle.controls.entities.Tag;
 import io.tackle.controls.entities.TagType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -50,10 +51,11 @@ public class ServicesParameterizedTest extends SecuredResourceTest {
     @DisplayName("testListHalEndpoint")
     @ParameterizedTest(name = "{index} ==> Resource ''{0}'' tested is {1}")
     @CsvSource({
-            "stakeholder     , 2, 4::5          , 2 , 4, displayName, Jessica Fletcher::Emmett Brown                              ",
-            "business-service, 3, 1::2::3       , 3 , 4, name       , Home Banking BU::Online Investments service::Credit Cards BS",
-            "job-function    , 5, 6::7::8::9::10, 12, 5, role       , Business Analyst::Business Service Owner / Manager::Consultant::DBA::Developer / Software Engineer",
-            "tag-type        , 3, 18::19::20    , 3 , 4, colour     , #123456::#111111::#999999"
+            "stakeholder     , 2, 4::5              , 2 , 4, displayName, Jessica Fletcher::Emmett Brown                              ",
+            "business-service, 3, 1::2::3           , 3 , 4, name       , Home Banking BU::Online Investments service::Credit Cards BS",
+            "job-function    , 5, 6::7::8::9::10    , 12, 5, role       , Business Analyst::Business Service Owner / Manager::Consultant::DBA::Developer / Software Engineer",
+            "tag-type        , 5, 18::19::20        , 6 , 5, colour     , #E8CCCC::#d4e8cc::#cce8e7::#46bdc6::#e8cce4",
+            "tag             , 5, 24::25::26::27::28, 28, 5, name       , COTS::In house::SaaS::Boston (USA)::London (UK)"
     })
     public void testListEndpoints(String resource, int size, @ConvertWith(CSVtoArray.class) Integer[] ids, int totalCount, int linkSize,
                                   String anotherFieldName, @ConvertWith(CSVtoArray.class) String[] anotherFieldValues) {
@@ -139,10 +141,17 @@ public class ServicesParameterizedTest extends SecuredResourceTest {
         tagType.rank = 1;
         tagType.colour = "#FF0000";
 
+        TagType parentTagType = new TagType();
+        parentTagType.id = 21L;
+        Tag tag = new Tag();
+        tag.tagType = parentTagType;
+        tag.name = "value";
+
         return Stream.of(
                 Arguments.of(stakeholder, "/stakeholder"),
                 Arguments.of(ceo, "/job-function"),
-                Arguments.of(tagType, "/tag-type")
+                Arguments.of(tagType, "/tag-type"),
+                Arguments.of(tag, "/tag")
         );
     }
 

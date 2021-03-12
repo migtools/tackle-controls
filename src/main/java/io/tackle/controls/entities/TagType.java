@@ -1,13 +1,19 @@
 package io.tackle.controls.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import io.tackle.commons.annotations.Filterable;
 import io.tackle.commons.entities.AbstractEntity;
 import org.hibernate.annotations.ResultCheckStyle;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "tag_type")
@@ -20,4 +26,8 @@ public class TagType extends AbstractEntity {
     public Integer rank;
     @Filterable
     public String colour;
+    @OneToMany(mappedBy = "tagType", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @Filterable(filterName = "tags.name")
+    @JsonBackReference
+    public List<Tag> tags = new ArrayList<>();
 }
