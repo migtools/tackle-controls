@@ -1,6 +1,7 @@
 package io.tackle.controls.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.tackle.commons.entities.AbstractEntity;
 import io.tackle.commons.annotations.Filterable;
 import org.hibernate.annotations.ResultCheckStyle;
@@ -27,7 +28,7 @@ public class Stakeholder extends AbstractEntity {
     @JsonBackReference
     public List<BusinessService> businessServices = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "stakeholders", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy="stakeholders", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     @JsonBackReference
     public List<StakeholderGroup> stakeholderGroups = new ArrayList<>();
 
