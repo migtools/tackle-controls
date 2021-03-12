@@ -45,14 +45,31 @@ $ podman run -it --rm=true --memory-swappiness=0 \
             -e POSTGRES_PASSWORD=controls -e POSTGRES_DB=controls_db \
             -p 5432:5432 postgres:10.6
 ```
-If running on Fedora 32 or below, remove the --memory-swappiness switch, executing:
+If running on Fedora 32 or below, remove the `--memory-swappiness` switch, executing:
 ```Shell
 $ podman run -it --rm=true \
             --name postgres-controls -e POSTGRES_USER=controls \
             -e POSTGRES_PASSWORD=controls -e POSTGRES_DB=controls_db \
             -p 5432:5432 postgres:10.6
 ```
-It works the same with Docker just replacing `podman` with `docker` in the above command.
+It works the same with Docker just replacing `podman` with `docker` in the above command.  
+To connect to the running PostgreSQL instance, first retrieve the `CONTAINER ID` value executing:
+
+```shell
+$ podman ps
+CONTAINER ID  IMAGE                            COMMAND     CREATED         STATUS             PORTS                                           NAMES
+36f92b030807  docker.io/library/postgres:10.6  postgres    22 minutes ago  Up 22 minutes ago  0.0.0.0:5432->5432/tcp                          postgres-controls
+```
+In the example `CONTAINER ID` is `36f92b030807` and use it in the next command:
+
+```shell
+$ podman exec -it <CONTAINER ID> bash
+```
+Once the container's terminal will be available, connect to the database running:
+
+```shell
+root@36f92b030807:/# psql -U controls -d controls_db
+```
 
 #### Keycloak
 
