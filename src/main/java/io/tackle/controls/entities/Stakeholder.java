@@ -29,7 +29,7 @@ public class Stakeholder extends AbstractEntity {
     public List<BusinessService> businessServices = new ArrayList<>();
 
     @ManyToMany(mappedBy="stakeholders", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-    @JsonBackReference
+    @JsonIgnore
     public List<StakeholderGroup> stakeholderGroups = new ArrayList<>();
 
     @PreRemove
