@@ -59,7 +59,7 @@ SELECT nextval('hibernate_sequence'), 'COBOL', id, '<shipped-data>', CURRENT_TIM
 FROM tag_type
 WHERE name = 'Language';
 INSERT INTO tag (id, name, tagType_id, createUser, createTime, updateUser, updateTime, deleted)
-SELECT nextval('hibernate_sequence'), 'Java EE', id, '<shipped-data>', CURRENT_TIMESTAMP, '<shipped-data>', CURRENT_TIMESTAMP, false
+SELECT nextval('hibernate_sequence'), 'Java', id, '<shipped-data>', CURRENT_TIMESTAMP, '<shipped-data>', CURRENT_TIMESTAMP, false
 FROM tag_type
 WHERE name = 'Language';
 INSERT INTO tag (id, name, tagType_id, createUser, createTime, updateUser, updateTime, deleted)
@@ -75,7 +75,7 @@ SELECT nextval('hibernate_sequence'), 'RHEL 8', id, '<shipped-data>', CURRENT_TI
 FROM tag_type
 WHERE name = 'Operating System';
 INSERT INTO tag (id, name, tagType_id, createUser, createTime, updateUser, updateTime, deleted)
-SELECT nextval('hibernate_sequence'), 'Windows Server id16', id, '<shipped-data>', CURRENT_TIMESTAMP, '<shipped-data>', CURRENT_TIMESTAMP, false
+SELECT nextval('hibernate_sequence'), 'Windows Server 2016', id, '<shipped-data>', CURRENT_TIMESTAMP, '<shipped-data>', CURRENT_TIMESTAMP, false
 FROM tag_type
 WHERE name = 'Operating System';
 INSERT INTO tag (id, name, tagType_id, createUser, createTime, updateUser, updateTime, deleted)
