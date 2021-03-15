@@ -1,22 +1,11 @@
 package io.tackle.controls.resources;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.ResourceArg;
-import io.quarkus.test.junit.DisabledOnNativeImage;
 import io.quarkus.test.junit.QuarkusTest;
-import io.restassured.RestAssured;
-import io.restassured.config.ObjectMapperConfig;
-import io.restassured.http.ContentType;
-import io.restassured.parsing.Parser;
-import io.restassured.response.Response;
 import io.tackle.commons.testcontainers.KeycloakTestResource;
 import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
-import io.tackle.controls.entities.BusinessService;
-import io.tackle.controls.entities.StakeholderGroup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -24,8 +13,6 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInRelativeOrder;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
 @QuarkusTestResource(value = PostgreSQLDatabaseTestResource.class,
@@ -61,7 +48,7 @@ public class StakeholderGroupTest extends SecuredResourceTest {
                         "id", containsInRelativeOrder(52, 53, 54),
                         "name", containsInRelativeOrder("Managers", "Engineers", "Marketing"),
                         "createUser", containsInRelativeOrder("<pre-filled>", "<pre-filled>", "<pre-filled>"),
-                        "[0].stakeholder.size()", is(2)
+                        "[0].stakeholders.size()", is(2)
                 );
     }
 
@@ -100,25 +87,27 @@ public class StakeholderGroupTest extends SecuredResourceTest {
                 .body("size()", is(1),
                         "id", contains(52),
                         "name", contains("Managers"),
-                        "stakeholders[0].displayName", contains("Jessica Fletcher"),
+                        "[0].stakeholders.size()", is(2),
+                        "[0].stakeholders.displayName", containsInRelativeOrder("Jessica Fletcher", "Emmett Brown"),
                         "createUser", contains("<pre-filled>"),
                         "updateUser", contains("<pre-filled>")
                 );
 
         given()
                 .accept("application/json")
-                .queryParam("sort", "id")
+                .queryParam("sort", "-id")
                 .queryParam("description", "up")
                 .queryParam("stakeholders.displayName", "met")
                 .when().get(PATH)
                 .then()
                 .log().all()
                 .statusCode(200)
-                .body("size()", is(1),
-                        "id", containsInRelativeOrder(53),
-                        "name", containsInRelativeOrder("Engineers"),
-                        "createUser", containsInRelativeOrder("<pre-filled>"),
-                        "stakeholders[0].displayName", containsInRelativeOrder("Emmett Brown")
+                .body("size()", is(2),
+                        "id", containsInRelativeOrder(53, 52),
+                        "name", containsInRelativeOrder("Engineers", "Managers"),
+                        "createUser", containsInRelativeOrder("<pre-filled>", "<pre-filled>"),
+                        "[0].stakeholders[0].displayName", is("Emmett Brown"),
+                        "[1].stakeholders.displayName", containsInRelativeOrder("Jessica Fletcher", "Emmett Brown")
                 );
     }
 
