@@ -2,17 +2,23 @@ package io.tackle.controls.resources;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.ResourceArg;
+import io.quarkus.test.junit.DisabledOnNativeImage;
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import io.tackle.commons.testcontainers.KeycloakTestResource;
 import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
+import io.tackle.controls.entities.StakeholderGroup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
+import static junit.framework.TestCase.assertEquals;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInRelativeOrder;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
 
 @QuarkusTest
 @QuarkusTestResource(value = PostgreSQLDatabaseTestResource.class,
@@ -111,7 +117,7 @@ public class StakeholderGroupTest extends SecuredResourceTest {
                 );
     }
 
-/*    @Test
+    @Test
     @DisabledOnNativeImage
     public void testStakeholderGroupCreateUpdateAndDeleteEndpoint() {
         testStakeholderGroupCreateUpdateAndDeleteEndpoint(false);
@@ -181,5 +187,60 @@ public class StakeholderGroupTest extends SecuredResourceTest {
                 .log().all()
                 .statusCode(404);
 
-    }*/
+    }
+
+    @Test
+    public void testStakeholderGroupFilteredSingleParamListHalEndpoint() {
+        given()
+                .accept("application/hal+json")
+                .queryParam("name", "Marketing")
+                .when().get(PATH)
+                .then()
+                .statusCode(200)
+                .body("_embedded.stakeholder-group.size()", is(1),
+                        "_embedded.stakeholder-group.id", contains(54),
+                        "_embedded.stakeholder-group.name", contains("Marketing"),
+                        "_embedded.stakeholder-group[0]._links.size()", is(5),
+                        "_embedded.stakeholder-group[0]._links.self.href", is("http://localhost:8081/controls/stakeholder-group/54"),
+                        "_links.size()", is(4));
+    }
+
+    @Test
+    public void testStakeholderGroupFilteredWrongParamListHalEndpoint() {
+        given()
+                .accept("application/hal+json")
+                .queryParam("wrong", "wrongAsWell")
+                .when().get(PATH)
+                .then()
+                .statusCode(400);
+
+        given()
+                .accept("application/hal+json")
+                .queryParam("stakeholders.wrong", "wrongAsWell")
+                .when().get(PATH)
+                .then()
+                .statusCode(400);
+    }
+
+
+
+    @Test
+    public void testStakeholderGroupPaginationWithPrevAndNextLinks() {
+        given()
+                .accept("application/hal+json")
+                .queryParam("sort", "name")
+                .queryParam("description", "Group")
+                .queryParam("size", "1")
+                .queryParam("page", "1")
+                .when().get(PATH)
+                .then()
+                .log().all()
+                .statusCode(200)
+                .body("_embedded.stakeholder-group.size()", is(1),
+                        "_embedded.stakeholder-group.id", containsInRelativeOrder( 52),
+                        "_embedded.stakeholder-group.name", containsInRelativeOrder("Managers"),
+                        "_embedded.stakeholder-group[0]._links.size()", is(5),
+                        "_embedded.stakeholder-group[0]._links.self.href", is("http://localhost:8081/controls/stakeholder-group/52"),
+                        "_links.size()", is(6));
+    }
 }
