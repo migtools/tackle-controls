@@ -50,16 +50,9 @@ public class StakeholderGroupTest extends SecuredResourceTest {
 
     @Test
     public void testStakeholderGroupListEndpoint() {
-        RestAssured.defaultParser = Parser.JSON;
-        RestAssured.config
-                .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory((type, s) -> new ObjectMapper()
-                                .registerModule(new Jdk8Module())
-                                .registerModule(new JavaTimeModule())
-                        /*.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)*/));
-
         given()
                 .accept("application/json")
-                .queryParam("sort", "id")
+                .queryParam("sort", "-stakeholders.size")
                 .when().get(PATH)
                 .then()
                 .log().all()
@@ -67,7 +60,8 @@ public class StakeholderGroupTest extends SecuredResourceTest {
                 .body("size()", is(3),
                         "id", containsInRelativeOrder(52, 53, 54),
                         "name", containsInRelativeOrder("Managers", "Engineers", "Marketing"),
-                        "createUser", containsInRelativeOrder("<pre-filled>", "<pre-filled>", "<pre-filled>")
+                        "createUser", containsInRelativeOrder("<pre-filled>", "<pre-filled>", "<pre-filled>"),
+                        "[0].stakeholder.size()", is(2)
                 );
     }
 
@@ -109,6 +103,22 @@ public class StakeholderGroupTest extends SecuredResourceTest {
                         "stakeholders[0].displayName", contains("Jessica Fletcher"),
                         "createUser", contains("<pre-filled>"),
                         "updateUser", contains("<pre-filled>")
+                );
+
+        given()
+                .accept("application/json")
+                .queryParam("sort", "id")
+                .queryParam("description", "up")
+                .queryParam("stakeholders.displayName", "met")
+                .when().get(PATH)
+                .then()
+                .log().all()
+                .statusCode(200)
+                .body("size()", is(1),
+                        "id", containsInRelativeOrder(53),
+                        "name", containsInRelativeOrder("Engineers"),
+                        "createUser", containsInRelativeOrder("<pre-filled>"),
+                        "stakeholders[0].displayName", containsInRelativeOrder("Emmett Brown")
                 );
     }
 
