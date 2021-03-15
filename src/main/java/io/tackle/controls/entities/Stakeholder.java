@@ -1,14 +1,12 @@
 package io.tackle.controls.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.tackle.commons.entities.AbstractEntity;
 import io.tackle.commons.annotations.Filterable;
+import io.tackle.commons.entities.AbstractEntity;
 import org.hibernate.annotations.ResultCheckStyle;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToMany;
@@ -32,11 +30,11 @@ public class Stakeholder extends AbstractEntity {
     @Filterable
     public String email;
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
-    @JsonBackReference
+    @JsonBackReference("businessServicesReference")
     public List<BusinessService> businessServices = new ArrayList<>();
 
-    @ManyToMany(mappedBy="stakeholders", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-    @JsonIgnore
+    @ManyToMany(mappedBy="stakeholders", fetch = FetchType.LAZY)
+    @JsonBackReference("stakeholderGroupsReference")
     public List<StakeholderGroup> stakeholderGroups = new ArrayList<>();
 
     @PreRemove

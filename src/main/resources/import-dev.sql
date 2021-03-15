@@ -24,3 +24,7 @@ INSERT INTO tag (id, name, tagType_id, createUser, createTime, updateUser, updat
 INSERT INTO tag (id, name, tagType_id, createUser, createTime, updateUser, updateTime, deleted) VALUES (nextval('hibernate_sequence'), 'Spring Boot', 18, '<shipped-data>', CURRENT_TIMESTAMP, '<shipped-data>', CURRENT_TIMESTAMP, false);
 INSERT INTO tag (id, name, tagType_id, createUser, createTime, updateUser, updateTime, deleted) VALUES (nextval('hibernate_sequence'), 'RHEL 8', 19, '<shipped-data>', CURRENT_TIMESTAMP, '<shipped-data>', CURRENT_TIMESTAMP, false);
 INSERT INTO tag (id, name, tagType_id, createUser, createTime, updateUser, updateTime, deleted) VALUES (nextval('hibernate_sequence'), 'Windows Server 2016', 19, '<shipped-data>', CURRENT_TIMESTAMP, '<shipped-data>', CURRENT_TIMESTAMP, false);
+INSERT INTO stakeholder_group (id, name, description, createUser, createTime, updateUser, updateTime, deleted) VALUES (nextval('hibernate_sequence'), 'Managers', 'Managers Group', '<shipped-data>', CURRENT_TIMESTAMP, '<shipped-data>', CURRENT_TIMESTAMP, false);
+INSERT INTO stakeholder_group (id, name, description, createUser, createTime, updateUser, updateTime, deleted) VALUES (nextval('hibernate_sequence'), 'Engineers', 'Engineers Group', '<shipped-data>', CURRENT_TIMESTAMP, '<shipped-data>', CURRENT_TIMESTAMP, false);
+INSERT INTO stakeholdergroup_stakeholders (group_id, stakeholder_id) VALUES (27, 4);
+INSERT INTO stakeholdergroup_stakeholders (group_id, stakeholder_id) VALUES (28, 3);
