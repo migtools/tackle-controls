@@ -110,6 +110,22 @@ public class StakeholderGroupTest extends SecuredResourceTest {
                         "createUser", contains("<pre-filled>"),
                         "updateUser", contains("<pre-filled>")
                 );
+
+        given()
+                .accept("application/json")
+                .queryParam("sort", "id")
+                .queryParam("description", "up")
+                .queryParam("stakeholders.displayName", "met")
+                .when().get(PATH)
+                .then()
+                .log().all()
+                .statusCode(200)
+                .body("size()", is(1),
+                        "id", containsInRelativeOrder(53),
+                        "name", containsInRelativeOrder("Engineers"),
+                        "createUser", containsInRelativeOrder("<pre-filled>"),
+                        "stakeholders[0].displayName", containsInRelativeOrder("Emmett Brown")
+                );
     }
 
 /*    @Test
