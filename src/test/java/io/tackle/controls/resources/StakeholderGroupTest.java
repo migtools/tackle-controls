@@ -243,4 +243,24 @@ public class StakeholderGroupTest extends SecuredResourceTest {
                         "_embedded.stakeholder-group[0]._links.self.href", is("http://localhost:8081/controls/stakeholder-group/52"),
                         "_links.size()", is(6));
     }
+
+    @Test
+    public void testStakeholderGroupListHalEndpoint() {
+        given()
+                .accept("application/hal+json")
+                .queryParam("sort", "-id")
+                .when().get(PATH)
+                .then()
+                .statusCode(200)
+                .body("_embedded.stakeholder-group.size()", is(3),
+                        "_embedded.stakeholder-group.id", containsInRelativeOrder(54, 53, 52),
+                        "_embedded.stakeholder-group.name", containsInRelativeOrder("Marketing", "Engineers", "Managers"),
+                        "_embedded.stakeholder-group[1]._links.size()", is(5),
+                        "_embedded.stakeholder-group[1]._links.self.href", is("http://localhost:8081/controls/stakeholder-group/53"),
+                        "_links.size()", is(4));
+    }
+
+
+
+
 }
