@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.quarkus.test.common.ResourceArg;
+import io.quarkus.test.junit.DisabledOnNativeImage;
 import io.tackle.commons.testcontainers.KeycloakTestResource;
 import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
@@ -16,11 +17,13 @@ import io.restassured.config.ObjectMapperConfig;
 import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
+import junit.framework.TestCase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
@@ -174,5 +177,73 @@ public class StakeholderTest extends SecuredResourceTest {
                 .then()
                 .log().all()
                 .statusCode(404);
+    }
+
+    @Test
+    @DisabledOnNativeImage
+    public void testStakeholderCreateUpdateAndDeleteEndpoint() {
+        testStakeholderCreateUpdateAndDeleteEndpoint(false);
+    }
+
+    protected void testStakeholderCreateUpdateAndDeleteEndpoint(boolean nativeExecution) {
+        final String displayName = "Another Stakeholder displayName";
+        final String description = "Another Stakeholder description";
+        Stakeholder stakeholder = new Stakeholder();
+        stakeholder.displayName = displayName;
+
+        Response response = given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(stakeholder)
+                .when().post(PATH)
+                .then()
+                .log().all()
+                .statusCode(201).extract().response();
+
+        TestCase.assertEquals(displayName, response.path("displayName"));
+        TestCase.assertEquals("alice", response.path("createUser"));
+        TestCase.assertEquals("alice", response.path("updateUser"));
+
+        Long stakeholderId = Long.valueOf(response.path("id").toString());
+
+        final String newName = "Yet another different displayName";
+        stakeholder.displayName = newName;
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(stakeholder)
+                .pathParam("id", stakeholderId)
+                .when().put(PATH + "/{id}")
+                .then().statusCode(204);
+
+        given()
+                .accept("application/json")
+                .pathParam("id", stakeholderId)
+                .when().get(PATH + "/{id}")
+                .then()
+                .log().all()
+                .statusCode(200)
+                .body("displayName", is(newName));
+
+        if (!nativeExecution) {
+            Stakeholder updatedStakeholderFromDb = Stakeholder.findById(stakeholderId);
+            TestCase.assertEquals(newName, updatedStakeholderFromDb.displayName);
+            assertNotNull(updatedStakeholderFromDb.createTime);
+            assertNotNull(updatedStakeholderFromDb.updateTime);
+        }
+
+        given()
+                .pathParam("id", stakeholderId)
+                .when().delete(PATH + "/{id}")
+                .then().statusCode(204);
+
+        given()
+                .accept("application/json")
+                .pathParam("id", stakeholderId)
+                .when().get(PATH + "/{id}")
+                .then()
+                .log().all()
+                .statusCode(404);
+
     }
 }
