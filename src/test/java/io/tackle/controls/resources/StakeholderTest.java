@@ -17,9 +17,12 @@ import io.restassured.config.ObjectMapperConfig;
 import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
+import io.tackle.controls.entities.StakeholderGroup;
 import junit.framework.TestCase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -206,8 +209,15 @@ public class StakeholderTest extends SecuredResourceTest {
 
         Long stakeholderId = Long.valueOf(response.path("id").toString());
 
+        StakeholderGroup sg = new StakeholderGroup();
+        String groupName = "Group 1";
+        sg.name = groupName;
+        sg.description = "Test Group";
+
+
         final String newName = "Yet another different displayName";
         stakeholder.displayName = newName;
+        stakeholder.stakeholderGroups.add(sg);
         given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -223,7 +233,8 @@ public class StakeholderTest extends SecuredResourceTest {
                 .then()
                 .log().all()
                 .statusCode(200)
-                .body("displayName", is(newName));
+                .body("displayName", is(newName),
+                        "stakeholderGroups.size()", is(1));
 
         if (!nativeExecution) {
             Stakeholder updatedStakeholderFromDb = Stakeholder.findById(stakeholderId);
