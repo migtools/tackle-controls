@@ -35,6 +35,7 @@ public class Stakeholder extends AbstractEntity {
 
     @ManyToMany(mappedBy="stakeholders", fetch = FetchType.LAZY)
     @JsonBackReference("stakeholderGroupsReference")
+    @Filterable(filterName = "stakeholderGroups.name")
     public List<StakeholderGroup> stakeholderGroups = new ArrayList<>();
 
     @PreRemove
