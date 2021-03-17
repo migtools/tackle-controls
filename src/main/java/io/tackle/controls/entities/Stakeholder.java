@@ -12,7 +12,9 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
 import javax.persistence.PreRemove;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,5 +44,11 @@ public class Stakeholder extends AbstractEntity {
     private void preRemove() {
         businessServices.forEach(businessService -> businessService.owner = null);
         stakeholderGroups.forEach(stakeholderGroup -> stakeholderGroup.stakeholders.remove(this));
+    }
+
+    @PreUpdate
+    @PrePersist
+    private void prePersistAndUpdate() {
+        stakeholderGroups.forEach(stakeholderGroup -> stakeholderGroup.stakeholders.add(this));
     }
 }

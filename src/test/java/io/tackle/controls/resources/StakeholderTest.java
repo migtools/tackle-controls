@@ -22,12 +22,11 @@ import junit.framework.TestCase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
 @QuarkusTestResource(value = PostgreSQLDatabaseTestResource.class,
@@ -190,9 +189,10 @@ public class StakeholderTest extends SecuredResourceTest {
 
     protected void testStakeholderCreateUpdateAndDeleteEndpoint(boolean nativeExecution) {
         final String displayName = "Another Stakeholder displayName";
-        final String description = "Another Stakeholder description";
+        final String email = "another@description.it";
         Stakeholder stakeholder = new Stakeholder();
         stakeholder.displayName = displayName;
+        stakeholder.email = email;
 
         Response response = given()
                 .contentType(ContentType.JSON)
@@ -203,17 +203,15 @@ public class StakeholderTest extends SecuredResourceTest {
                 .log().all()
                 .statusCode(201).extract().response();
 
-        TestCase.assertEquals(displayName, response.path("displayName"));
-        TestCase.assertEquals("alice", response.path("createUser"));
-        TestCase.assertEquals("alice", response.path("updateUser"));
+        assertEquals(displayName, response.path("displayName"));
+        assertEquals(email, response.path("email"));
+        assertEquals("alice", response.path("createUser"));
+        assertEquals("alice", response.path("updateUser"));
 
         Long stakeholderId = Long.valueOf(response.path("id").toString());
 
         StakeholderGroup sg = new StakeholderGroup();
-        String groupName = "Group 1";
-        sg.name = groupName;
-        sg.description = "Test Group";
-
+        sg.id = 54L;
 
         final String newName = "Yet another different displayName";
         stakeholder.displayName = newName;
@@ -227,7 +225,7 @@ public class StakeholderTest extends SecuredResourceTest {
                 .then().statusCode(204);
 
         given()
-                .accept("application/json")
+                .accept("application/hal+json")
                 .pathParam("id", stakeholderId)
                 .when().get(PATH + "/{id}")
                 .then()
