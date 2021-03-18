@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import static junit.framework.TestCase.assertEquals;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsInRelativeOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
@@ -94,7 +95,7 @@ public class StakeholderGroupTest extends SecuredResourceTest {
                         "id", contains(52),
                         "name", contains("Managers"),
                         "[0].stakeholders.size()", is(2),
-                        "[0].stakeholders.displayName", containsInRelativeOrder("Jessica Fletcher", "Emmett Brown"),
+                        "[0].stakeholders.displayName", containsInAnyOrder("Jessica Fletcher", "Emmett Brown"),
                         "createUser", contains("<pre-filled>"),
                         "updateUser", contains("<pre-filled>")
                 );
@@ -113,7 +114,7 @@ public class StakeholderGroupTest extends SecuredResourceTest {
                         "name", containsInRelativeOrder("Engineers", "Managers"),
                         "createUser", containsInRelativeOrder("<pre-filled>", "<pre-filled>"),
                         "[0].stakeholders[0].displayName", is("Emmett Brown"),
-                        "[1].stakeholders.displayName", containsInRelativeOrder("Jessica Fletcher", "Emmett Brown")
+                        "[1].stakeholders.displayName", containsInAnyOrder("Emmett Brown", "Jessica Fletcher")
                 );
     }
 

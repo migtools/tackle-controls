@@ -24,6 +24,9 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
@@ -137,7 +140,7 @@ public class ServicesParameterizedTest extends SecuredResourceTest {
         stakeholder.email = "another@email.foo";
         StakeholderGroup marketing = new StakeholderGroup();
         marketing.id = 54L;
-        stakeholder.stakeholderGroups = Arrays.asList(marketing);
+        stakeholder.stakeholderGroups = Collections.singleton(marketing);
 
         JobFunction ceo = new JobFunction();
         ceo.role = "CEO";
@@ -162,7 +165,7 @@ public class ServicesParameterizedTest extends SecuredResourceTest {
         jessica.id = 4L;
         Stakeholder emmett = new Stakeholder();
         emmett.id = 5L;
-        stakeholderGroup.stakeholders = Arrays.asList(jessica, emmett);
+        stakeholderGroup.stakeholders = new HashSet<>(Arrays.asList(jessica, emmett));
 
         return Stream.of(
                 Arguments.of(stakeholder, "/stakeholder"),

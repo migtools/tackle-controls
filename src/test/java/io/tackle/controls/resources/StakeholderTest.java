@@ -18,13 +18,15 @@ import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
 import io.tackle.controls.entities.StakeholderGroup;
-import junit.framework.TestCase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.blankOrNullString;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInRelativeOrder;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -193,18 +195,22 @@ public class StakeholderTest extends SecuredResourceTest {
         Stakeholder stakeholder = new Stakeholder();
         stakeholder.displayName = displayName;
         stakeholder.email = email;
+        StakeholderGroup stakeholderGroup = new StakeholderGroup();
+        stakeholderGroup.id = 53L;
+        stakeholder.stakeholderGroups.add(stakeholderGroup);
 
         Response response = given()
                 .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
+                .accept("application/hal+json")
                 .body(stakeholder)
-                .when().post(PATH)
+                .when().log().body().post(PATH)
                 .then()
                 .log().all()
                 .statusCode(201).extract().response();
 
         assertEquals(displayName, response.path("displayName"));
         assertEquals(email, response.path("email"));
+        assertEquals(1, Integer.valueOf(response.path("stakeholderGroups.size()").toString()));
         assertEquals("alice", response.path("createUser"));
         assertEquals("alice", response.path("updateUser"));
 
@@ -232,11 +238,11 @@ public class StakeholderTest extends SecuredResourceTest {
                 .log().all()
                 .statusCode(200)
                 .body("displayName", is(newName),
-                        "stakeholderGroups.size()", is(1));
+                        "stakeholderGroups.size()", is(2));
 
         if (!nativeExecution) {
             Stakeholder updatedStakeholderFromDb = Stakeholder.findById(stakeholderId);
-            TestCase.assertEquals(newName, updatedStakeholderFromDb.displayName);
+            assertEquals(newName, updatedStakeholderFromDb.displayName);
             assertNotNull(updatedStakeholderFromDb.createTime);
             assertNotNull(updatedStakeholderFromDb.updateTime);
         }

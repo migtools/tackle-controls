@@ -13,8 +13,8 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.PreRemove;
 import javax.persistence.Table;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "stakeholder_group")
@@ -33,7 +33,7 @@ public class StakeholderGroup extends AbstractEntity {
             inverseJoinColumns = {@JoinColumn(name = "stakeholder_id")}
     )
     @Filterable(filterName = "stakeholders.displayName")
-    public List<Stakeholder> stakeholders = new ArrayList<>();
+    public Set<Stakeholder> stakeholders = new HashSet<>();
 
     @PreRemove
     private void preRemove() {

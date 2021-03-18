@@ -12,12 +12,14 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.PrePersist;
+import javax.persistence.PostPersist;
 import javax.persistence.PreRemove;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "stakeholder")
@@ -38,7 +40,7 @@ public class Stakeholder extends AbstractEntity {
     @ManyToMany(mappedBy="stakeholders", fetch = FetchType.LAZY)
     @JsonBackReference("stakeholderGroupsReference")
     @Filterable(filterName = "stakeholderGroups.name")
-    public List<StakeholderGroup> stakeholderGroups = new ArrayList<>();
+    public Set<StakeholderGroup> stakeholderGroups = new HashSet<>();
 
     @PreRemove
     private void preRemove() {
@@ -47,8 +49,15 @@ public class Stakeholder extends AbstractEntity {
     }
 
     @PreUpdate
-    @PrePersist
-    private void prePersistAndUpdate() {
+    private void preUpdate() {
         stakeholderGroups.forEach(stakeholderGroup -> stakeholderGroup.stakeholders.add(this));
+    }
+
+    @PostPersist
+    private void postPersist() {
+        stakeholderGroups.forEach(stakeholderGroup -> {
+            StakeholderGroup stakeholderGroupFromDb = StakeholderGroup.findById(stakeholderGroup.id);
+            if (stakeholderGroupFromDb != null) stakeholderGroupFromDb.stakeholders.add(this);
+        });
     }
 }
