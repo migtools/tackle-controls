@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.quarkus.test.common.ResourceArg;
+import io.quarkus.test.junit.DisabledOnNativeImage;
 import io.tackle.commons.testcontainers.KeycloakTestResource;
 import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
@@ -16,12 +17,18 @@ import io.restassured.config.ObjectMapperConfig;
 import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
+import io.tackle.controls.entities.StakeholderGroup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.blankOrNullString;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInRelativeOrder;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
 @QuarkusTestResource(value = PostgreSQLDatabaseTestResource.class,
@@ -174,5 +181,112 @@ public class StakeholderTest extends SecuredResourceTest {
                 .then()
                 .log().all()
                 .statusCode(404);
+    }
+
+    @Test
+    @DisabledOnNativeImage
+    public void testStakeholderCreateUpdateAndDeleteEndpoint() {
+        testStakeholderCreateUpdateAndDeleteEndpoint(false);
+    }
+
+    protected void testStakeholderCreateUpdateAndDeleteEndpoint(boolean nativeExecution) {
+        final String displayName = "Another Stakeholder displayName";
+        final String email = "another@description.it";
+        Stakeholder stakeholder = new Stakeholder();
+        stakeholder.displayName = displayName;
+        stakeholder.email = email;
+        StakeholderGroup stakeholderGroup = new StakeholderGroup();
+        stakeholderGroup.id = 53L;
+        StakeholderGroup nonexistent = new StakeholderGroup();
+        nonexistent.id = 1234567890L;
+        stakeholder.stakeholderGroups.add(stakeholderGroup);
+        stakeholder.stakeholderGroups.add(nonexistent);
+
+        Response response = given()
+                .contentType(ContentType.JSON)
+                .accept("application/hal+json")
+                .body(stakeholder)
+                .when().log().body().post(PATH)
+                .then()
+                .log().all()
+                .statusCode(201).extract().response();
+
+        assertEquals(displayName, response.path("displayName"));
+        assertEquals(email, response.path("email"));
+        assertEquals(1, Integer.valueOf(response.path("stakeholderGroups.size()").toString()));
+        assertEquals("alice", response.path("createUser"));
+        assertEquals("alice", response.path("updateUser"));
+
+        Long stakeholderId = Long.valueOf(response.path("id").toString());
+
+        StakeholderGroup sg = new StakeholderGroup();
+        sg.id = 54L;
+
+        final String newName = "Yet another different displayName";
+        stakeholder.displayName = newName;
+        stakeholder.stakeholderGroups.add(sg);
+        // TODO fix the update with referenced a non-existent Stakeholder Group ID
+        stakeholder.stakeholderGroups.remove(nonexistent);
+
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(stakeholder)
+                .pathParam("id", stakeholderId)
+                .when().put(PATH + "/{id}")
+                .then().statusCode(204);
+
+        given()
+                .accept("application/hal+json")
+                .pathParam("id", stakeholderId)
+                .when().get(PATH + "/{id}")
+                .then()
+                .log().all()
+                .statusCode(200)
+                .body("displayName", is(newName),
+                        "stakeholderGroups.size()", is(2));
+
+        StakeholderGroup sgDuplicate = new StakeholderGroup();
+        sgDuplicate.id = 54L;
+        stakeholder.stakeholderGroups.add(sgDuplicate);
+        
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(stakeholder)
+                .pathParam("id", stakeholderId)
+                .when().put(PATH + "/{id}")
+                .then().statusCode(204);
+
+        given()
+                .accept("application/hal+json")
+                .pathParam("id", stakeholderId)
+                .when().get(PATH + "/{id}")
+                .then()
+                .log().all()
+                .statusCode(200)
+                .body("displayName", is(newName),
+                        "stakeholderGroups.size()", is(2));
+
+        if (!nativeExecution) {
+            Stakeholder updatedStakeholderFromDb = Stakeholder.findById(stakeholderId);
+            assertEquals(newName, updatedStakeholderFromDb.displayName);
+            assertNotNull(updatedStakeholderFromDb.createTime);
+            assertNotNull(updatedStakeholderFromDb.updateTime);
+        }
+
+        given()
+                .pathParam("id", stakeholderId)
+                .when().delete(PATH + "/{id}")
+                .then().statusCode(204);
+
+        given()
+                .accept("application/json")
+                .pathParam("id", stakeholderId)
+                .when().get(PATH + "/{id}")
+                .then()
+                .log().all()
+                .statusCode(404);
+
     }
 }

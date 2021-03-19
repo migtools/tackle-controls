@@ -11,6 +11,7 @@ import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
 import io.tackle.controls.entities.JobFunction;
 import io.tackle.controls.entities.Stakeholder;
+import io.tackle.controls.entities.StakeholderGroup;
 import io.tackle.controls.entities.Tag;
 import io.tackle.controls.entities.TagType;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +24,9 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
@@ -48,14 +52,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ServicesParameterizedTest extends SecuredResourceTest {
 
     // the 'name' output seems not to work with Quarkus
-    @DisplayName("testListHalEndpoint")
+    @DisplayName("testListEndpoints")
     @ParameterizedTest(name = "{index} ==> Resource ''{0}'' tested is {1}")
     @CsvSource({
-            "stakeholder     , 2, 4::5              , 2 , 4, displayName, Jessica Fletcher::Emmett Brown                              ",
-            "business-service, 3, 1::2::3           , 3 , 4, name       , Home Banking BU::Online Investments service::Credit Cards BS",
-            "job-function    , 5, 6::7::8::9::10    , 12, 5, role       , Business Analyst::Business Service Owner / Manager::Consultant::DBA::Developer / Software Engineer",
-            "tag-type        , 5, 18::19::20        , 6 , 5, colour     , #E8CCCC::#d4e8cc::#cce8e7::#46bdc6::#e8cce4",
-            "tag             , 5, 24::25::26::27::28, 28, 5, name       , COTS::In house::SaaS::Boston (USA)::London (UK)"
+        //   resource path    ,size, IDs               ,tot,linkSize,anotherField, anotherFieldValues
+            "stakeholder      ,   2, 4::5              , 2 ,       4, displayName, Jessica Fletcher::Emmett Brown                              ",
+            "business-service ,   3, 1::2::3           , 3 ,       4, name       , Home Banking BU::Online Investments service::Credit Cards BS",
+            "job-function     ,   5, 6::7::8::9::10    , 12,       5, role       , Business Analyst::Business Service Owner / Manager::Consultant::DBA::Developer / Software Engineer",
+            "tag-type         ,   5, 18::19::20        , 6 ,       5, colour     , #E8CCCC::#d4e8cc::#cce8e7::#46bdc6::#e8cce4",
+            "tag              ,   5, 24::25::26::27::28, 28,       5, name       , COTS::In house::SaaS::Boston (USA)::London (UK)",
+            "stakeholder-group,   3, 52::53::54        , 3 ,       4, description, Managers Group::Engineers Group::Marketing Group"
     })
     public void testListEndpoints(String resource, int size, @ConvertWith(CSVtoArray.class) Integer[] ids, int totalCount, int linkSize,
                                   String anotherFieldName, @ConvertWith(CSVtoArray.class) String[] anotherFieldValues) {
@@ -86,7 +92,7 @@ public class ServicesParameterizedTest extends SecuredResourceTest {
                         format("%s", anotherFieldName), containsInRelativeOrder(anotherFieldValues));
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "{index} ==> Resource ''{0}'' tested is {1}")
     @MethodSource("provideObjects")
     public void testCreateAndDeleteEndpoint(AbstractEntity entity, String resource) {
         Response response = given()
@@ -132,6 +138,9 @@ public class ServicesParameterizedTest extends SecuredResourceTest {
         consultant.id = 7L;
         stakeholder.jobFunction = consultant;
         stakeholder.email = "another@email.foo";
+        StakeholderGroup marketing = new StakeholderGroup();
+        marketing.id = 54L;
+        stakeholder.stakeholderGroups = Collections.singleton(marketing);
 
         JobFunction ceo = new JobFunction();
         ceo.role = "CEO";
@@ -147,11 +156,23 @@ public class ServicesParameterizedTest extends SecuredResourceTest {
         tag.tagType = parentTagType;
         tag.name = "value";
 
+        StakeholderGroup stakeholderGroup = new StakeholderGroup();
+        stakeholderGroup.name = "name";
+        stakeholderGroup.description = "description";
+        Stakeholder stakeholder1 = new Stakeholder();
+        stakeholder1.id = 4L;
+        Stakeholder jessica = new Stakeholder();
+        jessica.id = 4L;
+        Stakeholder emmett = new Stakeholder();
+        emmett.id = 5L;
+        stakeholderGroup.stakeholders = new HashSet<>(Arrays.asList(jessica, emmett));
+
         return Stream.of(
                 Arguments.of(stakeholder, "/stakeholder"),
                 Arguments.of(ceo, "/job-function"),
                 Arguments.of(tagType, "/tag-type"),
-                Arguments.of(tag, "/tag")
+                Arguments.of(tag, "/tag"),
+                Arguments.of(stakeholderGroup, "/stakeholder-group")
         );
     }
 
