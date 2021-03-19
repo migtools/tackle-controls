@@ -30,7 +30,7 @@ public class Stakeholder extends AbstractEntity {
     @Filterable
     public String displayName;
     @ManyToOne
-    @Filterable
+    @Filterable(filterName = "jobFunction.role")
     public JobFunction jobFunction;
     @Filterable
     public String email;
