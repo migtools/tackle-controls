@@ -18,6 +18,7 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -55,9 +56,12 @@ public class Stakeholder extends AbstractEntity {
 
     @PostPersist
     private void postPersist() {
-        stakeholderGroups.forEach(stakeholderGroup -> {
-            StakeholderGroup stakeholderGroupFromDb = StakeholderGroup.findById(stakeholderGroup.id);
+        // using the iterator lets us remove the not-valid referenced StakeholderGroup IDs
+        Iterator<StakeholderGroup> iter = stakeholderGroups.iterator();
+        while (iter.hasNext()) {
+            StakeholderGroup stakeholderGroupFromDb = StakeholderGroup.findById(iter.next().id);
             if (stakeholderGroupFromDb != null) stakeholderGroupFromDb.stakeholders.add(this);
-        });
+            else iter.remove();
+        }
     }
 }

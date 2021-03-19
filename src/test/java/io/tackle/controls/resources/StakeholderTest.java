@@ -197,7 +197,10 @@ public class StakeholderTest extends SecuredResourceTest {
         stakeholder.email = email;
         StakeholderGroup stakeholderGroup = new StakeholderGroup();
         stakeholderGroup.id = 53L;
+        StakeholderGroup nonexistent = new StakeholderGroup();
+        nonexistent.id = 1234567890L;
         stakeholder.stakeholderGroups.add(stakeholderGroup);
+        stakeholder.stakeholderGroups.add(nonexistent);
 
         Response response = given()
                 .contentType(ContentType.JSON)
@@ -222,6 +225,9 @@ public class StakeholderTest extends SecuredResourceTest {
         final String newName = "Yet another different displayName";
         stakeholder.displayName = newName;
         stakeholder.stakeholderGroups.add(sg);
+        // TODO fix the update with referenced a non-existent Stakeholder Group ID
+        stakeholder.stakeholderGroups.remove(nonexistent);
+
         given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
