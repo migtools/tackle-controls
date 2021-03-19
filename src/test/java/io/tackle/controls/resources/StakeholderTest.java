@@ -246,6 +246,28 @@ public class StakeholderTest extends SecuredResourceTest {
                 .body("displayName", is(newName),
                         "stakeholderGroups.size()", is(2));
 
+        StakeholderGroup sgDuplicate = new StakeholderGroup();
+        sgDuplicate.id = 54L;
+        stakeholder.stakeholderGroups.add(sgDuplicate);
+        
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(stakeholder)
+                .pathParam("id", stakeholderId)
+                .when().put(PATH + "/{id}")
+                .then().statusCode(204);
+
+        given()
+                .accept("application/hal+json")
+                .pathParam("id", stakeholderId)
+                .when().get(PATH + "/{id}")
+                .then()
+                .log().all()
+                .statusCode(200)
+                .body("displayName", is(newName),
+                        "stakeholderGroups.size()", is(2));
+
         if (!nativeExecution) {
             Stakeholder updatedStakeholderFromDb = Stakeholder.findById(stakeholderId);
             assertEquals(newName, updatedStakeholderFromDb.displayName);
