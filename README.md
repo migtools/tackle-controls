@@ -414,6 +414,8 @@ $ ab -n 1000 -c 20 -H 'Accept: application/hal+json' 'http://<host>/controls/bus
 
 ## Database management
 
+> :rotating_light: Backup and Restore instructions are provided for development purposed and **NOT for production** usage :rotating_light:
+
 ### Backup
 
 1. get the name of the PostgreSQL pod:
