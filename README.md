@@ -411,3 +411,37 @@ where
 ```Shell
 $ ab -n 1000 -c 20 -H 'Accept: application/hal+json' 'http://<host>/controls/business-service?name=service&sort=name&size=1&page=1'
 ```
+
+## Database management
+
+> :rotating_light: Backup and Restore instructions are provided for development purposes and **NOT for production** usage :rotating_light:
+
+### Backup
+
+1. get the name of the PostgreSQL pod:
+   ```shell
+   $ kubectl get pods -l app.kubernetes.io/name=controls-postgres -n tackle
+   ```
+1. retrieve the database's user using pod's name (e.g. `controls-postgres-5b6cc47f66-fw48p`):
+   ```shell
+   $ kubectl exec controls-postgres-5b6cc47f66-fw48p -n tackle -- printenv POSTGRES_USER
+   ```
+1. dump the database **data only** (excluding `flyway_schema_history` table) using pod's name and database's user (e.g. `controls-postgres-5b6cc47f66-fw48p` and `controls`):
+   ```shell
+   $ kubectl exec controls-postgres-5b6cc47f66-fw48p -n tackle  -- /bin/bash -c "pg_dump -a -T flyway_schema_history -U controls controls_db" > $(date +%Y%m%d%H%M%S)_controls_db_data.sql
+   ```
+
+### Restore
+
+1. get the name of the PostgreSQL pod:
+   ```shell
+   $ kubectl get pods -l app.kubernetes.io/name=controls-postgres -n tackle
+   ```
+1. retrieve the database's user using pod's name (e.g. `controls-postgres-5b6cc47f66-fw48p`):
+   ```shell
+   $ kubectl exec controls-postgres-5b6cc47f66-fw48p -n tackle -- printenv POSTGRES_USER
+   ```
+1. insert the values in the database using pod's name and database's user (e.g. `controls-postgres-5b6cc47f66-fw48p` and `controls`):
+   ```shell
+   $ cat 20210323195709_controls_db_data.sql | kubectl exec -i controls-postgres-5b6cc47f66-fw48p -n tackle -- psql -U controls -d controls_db
+   ```
