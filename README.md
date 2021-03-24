@@ -424,9 +424,9 @@ $ ab -n 1000 -c 20 -H 'Accept: application/hal+json' 'http://<host>/controls/bus
    ```shell
    $ kubectl exec controls-postgres-5b6cc47f66-fw48p -n tackle -- printenv POSTGRES_USER
    ```
-1. dump the database **data only** (excluding `flyway_schema_history`, `tag_type`, `tag` and `job_function` tables) using pod's name and database's user (e.g. `controls-postgres-5b6cc47f66-fw48p` and `controls`):
+1. dump the database **data only** (excluding `flyway_schema_history` table) using pod's name and database's user (e.g. `controls-postgres-5b6cc47f66-fw48p` and `controls`):
    ```shell
-   $ kubectl exec controls-postgres-5b6cc47f66-fw48p -n tackle  -- /bin/bash -c "pg_dump -a -T flyway_schema_history -T tag_type -T tag -T job_function -U controls controls_db" > $(date +%Y%m%d%H%M%S)_controls_db_data.sql 
+   $ kubectl exec controls-postgres-5b6cc47f66-fw48p -n tackle  -- /bin/bash -c "pg_dump -a -T flyway_schema_history -U controls controls_db" > $(date +%Y%m%d%H%M%S)_controls_db_data.sql
    ```
 
 ### Restore
