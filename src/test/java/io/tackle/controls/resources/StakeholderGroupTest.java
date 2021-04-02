@@ -46,7 +46,7 @@ public class StakeholderGroupTest extends SecuredResourceTest {
     public void testStakeholderGroupListEndpoint() {
         given()
                 .accept("application/json")
-                .queryParam("sort", "-stakeholders.size")
+                .queryParam("sort", "-stakeholders.size()")
                 .when().get(PATH)
                 .then()
                 .log().all()
