@@ -124,6 +124,7 @@ For creating the `Foo` resource, follow these steps:
     import javax.persistence.Entity;
     
     @Entity
+    @Table(name = "foo")
     @SQLDelete(sql = "UPDATE foo SET deleted = true WHERE id = ?", check = ResultCheckStyle.COUNT)
     @Where(clause = "deleted = false")
     public class Foo extends AbstractEntity {
@@ -161,7 +162,7 @@ For creating the `Foo` resource, follow these steps:
     @ResourceProperties(hal = true)
     public interface FooResource extends PanacheEntityResource<Foo, Long> {
        @MethodProperties(exposed = false)
-       List<BusinessService> list(Page page, Sort sort);
+       List<Foo> list(Page page, Sort sort);
     }
    ```
    in this way the REST Data Panache extension will be used for providing all endpoints but the "list" one because we need filtering for lists which is not provided (yet?) from that Quarkus extension.
