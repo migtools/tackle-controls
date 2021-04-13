@@ -59,7 +59,7 @@ public class ServicesParameterizedTest extends SecuredResourceTest {
             "stakeholder      ,   2, 4::5              , 2 ,       4, displayName, Jessica Fletcher::Emmett Brown                              ",
             "business-service ,   3, 1::2::3           , 3 ,       4, name       , Home Banking BU::Online Investments service::Credit Cards BS",
             "job-function     ,   5, 6::7::8::9::10    , 12,       5, role       , Business Analyst::Business Service Owner / Manager::Consultant::DBA::Developer / Software Engineer",
-            "tag-type         ,   5, 18::19::20        , 6 ,       5, colour     , #E8CCCC::#d4e8cc::#cce8e7::#46bdc6::#e8cce4",
+            "tag-type         ,   5, 18::19::20        , 6 ,       5, colour     , #ec7a08::#2b9af3::#6ec664::#009596::#a18fff",
             "tag              ,   5, 24::25::26::27::28, 28,       5, name       , COTS::In house::SaaS::Boston (USA)::London (UK)",
             "stakeholder-group,   3, 52::53::54        , 3 ,       4, description, Managers Group::Engineers Group::Marketing Group"
     })
