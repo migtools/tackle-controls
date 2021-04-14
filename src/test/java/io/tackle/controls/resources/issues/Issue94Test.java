@@ -9,12 +9,11 @@ import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
 import io.tackle.controls.entities.Stakeholder;
 import io.tackle.controls.entities.StakeholderGroup;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 
 @QuarkusTest
@@ -32,6 +31,12 @@ import static org.hamcrest.Matchers.notNullValue;
         }
 )
 public class Issue94Test extends SecuredResourceTest {
+
+    @BeforeAll
+    public static void init() {
+        PATH = "/stakeholder";
+    }
+
     @Test
     public void test() {
         Stakeholder stakeholder = new Stakeholder();
@@ -54,8 +59,7 @@ public class Issue94Test extends SecuredResourceTest {
                 .accept(ContentType.JSON)
                 .body(stakeholder)
                 .when()
-                        .log().body()
-                .post("/stakeholder")
+                .post(PATH)
                 .then()
                 .statusCode(201)
                 .extract()
@@ -66,11 +70,18 @@ public class Issue94Test extends SecuredResourceTest {
                 .accept("application/hal+json")
                 .pathParam("id", stakeholder.id)
                 .when()
-                .get("/stakeholder/{id}")
+                .get(PATH + "/{id}")
                 .then()
-                .log().body()
                 .statusCode(200)
                 .body("stakeholderGroups", is(notNullValue()),
                         "stakeholderGroups.size()", is(3));
+
+        given()
+                .accept("application/hal+json")
+                .pathParam("id", stakeholder.id)
+                .when()
+                .delete(PATH + "/{id}")
+                .then()
+                .statusCode(204);
     }
 }
