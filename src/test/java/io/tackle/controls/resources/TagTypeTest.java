@@ -2,14 +2,12 @@ package io.tackle.controls.resources;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.ResourceArg;
-import io.quarkus.test.junit.DisabledOnNativeImage;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.tackle.commons.testcontainers.KeycloakTestResource;
 import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
-import io.tackle.controls.entities.BusinessService;
 import io.tackle.controls.entities.Tag;
 import io.tackle.controls.entities.TagType;
 import org.junit.jupiter.api.BeforeAll;
@@ -20,8 +18,6 @@ import static org.hamcrest.Matchers.containsInRelativeOrder;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.iterableWithSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
 @QuarkusTestResource(value = PostgreSQLDatabaseTestResource.class,
@@ -159,5 +155,41 @@ public class TagTypeTest extends SecuredResourceTest {
                 .when().get("/tag/{id}")
                 .then()
                 .statusCode(404);
+    }
+
+    @Test
+    // from https://github.com/konveyor/tackle-controls/issues/98
+    public void testListSortedByRank() {
+        TagType tagType = new TagType();
+        tagType.name = "sort by rank test";
+        tagType.rank = 100;
+        tagType.colour = "#123456";
+
+        tagType.id = Long.valueOf(given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(tagType)
+                .when().post(PATH)
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id")
+                .toString());
+
+        given()
+                .accept("application/hal+json")
+                .queryParam("sort", "-rank")
+                .when().get(PATH)
+                .then()
+                .statusCode(200)
+                .body("_embedded.tag-type.size()", is(7),
+                        "_embedded.tag-type.name", containsInRelativeOrder("sort by rank test", "Application Type", "Data Center", "Database", "Runtime", "Operating System", "Language"));
+
+        given()
+                .pathParam("id", tagType.id)
+                .when()
+                .delete(PATH + "/{id}")
+                .then()
+                .statusCode(204);
     }
 }

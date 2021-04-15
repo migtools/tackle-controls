@@ -7,7 +7,7 @@ create table tag_type (
       updateUser varchar(255),
       colour varchar(255),
       name varchar(255),
-      rank varchar(255),
+      rank int4,
       primary key (id)
 );
 
