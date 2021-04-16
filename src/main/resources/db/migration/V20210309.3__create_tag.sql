@@ -6,7 +6,7 @@ create table tag (
      updateTime timestamp,
      updateUser varchar(255),
      name varchar(255),
-     tagType_id int8,
+     tagType_id int8 not null,
      primary key (id)
 );
 alter table if exists tag

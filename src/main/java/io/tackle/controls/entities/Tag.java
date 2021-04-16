@@ -17,7 +17,7 @@ import javax.persistence.Table;
 public class Tag extends AbstractEntity {
     @Filterable
     public String name;
-    @ManyToOne
+    @ManyToOne(optional = false)
     @Filterable(filterName = "tagType.id")
     public TagType tagType;
 
