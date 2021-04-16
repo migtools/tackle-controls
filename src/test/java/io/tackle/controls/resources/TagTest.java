@@ -3,9 +3,11 @@ package io.tackle.controls.resources;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.ResourceArg;
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.http.ContentType;
 import io.tackle.commons.testcontainers.KeycloakTestResource;
 import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
+import io.tackle.controls.entities.Tag;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -44,5 +46,21 @@ public class TagTest extends SecuredResourceTest {
                 .log().all()
                 .statusCode(200)
                 .body("_embedded.tag.size()", is(7));
+    }
+
+    @Test
+    // https://github.com/konveyor/tackle-controls/issues/101
+    public void testCreateWithoutTagType() {
+        Tag tag = new Tag();
+        tag.name = "test";
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(tag)
+                .when()
+                .post(PATH)
+                .then()
+                // this will expect a '409' from Quarkus 1.13+ with the introduction of RestDataPanacheException
+                .statusCode(500);
     }
 }
