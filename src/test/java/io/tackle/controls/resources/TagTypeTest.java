@@ -192,4 +192,24 @@ public class TagTypeTest extends SecuredResourceTest {
                 .then()
                 .statusCode(204);
     }
+
+    @Test
+    // https://github.com/konveyor/tackle-controls/issues/105
+    public void testListFilteredByTag() {
+        given()
+                .accept("application/hal+json")
+                .queryParam("tags.name", "java")
+                .queryParam("name", "lang")
+                .queryParam("name", "foo")
+                .when()
+                .get(PATH)
+                .then()
+                .statusCode(200)
+                .log().body()
+                .body("_embedded.tag-type.size()", is(1),
+                        "_embedded.tag-type.name", containsInRelativeOrder("Language"),
+                        "_embedded.tag-type[0].tags.size()", is(2),
+                        "_embedded.tag-type[0].tags.name", containsInRelativeOrder("Java", "Javascript"),
+                        "total_count", is(1));
+    }
 }
