@@ -119,10 +119,12 @@ For creating the `Foo` resource, follow these steps:
     package io.tackle.controls.entities;
 
     import io.tackle.commons.entities.AbstractEntity;
+    import org.hibernate.annotations.ResultCheckStyle;
     import org.hibernate.annotations.SQLDelete;
     import org.hibernate.annotations.Where;
     import javax.persistence.Entity;
-    
+    import javax.persistence.Table;
+
     @Entity
     @Table(name = "foo")
     @SQLDelete(sql = "UPDATE foo SET deleted = true WHERE id = ?", check = ResultCheckStyle.COUNT)
