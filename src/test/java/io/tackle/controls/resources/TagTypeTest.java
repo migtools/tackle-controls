@@ -2,9 +2,11 @@ package io.tackle.controls.resources;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.ResourceArg;
+import io.quarkus.test.junit.DisabledOnNativeImage;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import io.tackle.commons.resources.query.Query;
 import io.tackle.commons.testcontainers.KeycloakTestResource;
 import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
@@ -12,6 +14,7 @@ import io.tackle.controls.entities.Tag;
 import io.tackle.controls.entities.TagType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsInRelativeOrder;
@@ -211,5 +214,15 @@ public class TagTypeTest extends SecuredResourceTest {
                         "_embedded.tag-type[0].tags.size()", is(2),
                         "_embedded.tag-type[0].tags.name", containsInRelativeOrder("Java", "Javascript"),
                         "total_count", is(1));
+    }
+
+    @Test
+    @DisabledOnNativeImage
+    // https://github.com/konveyor/tackle-controls/issues/105
+    public void testListFilteredWithoutQueryParams() throws Exception {
+        TagTypeListFilteredResource listFilteredResource = new TagTypeListFilteredResource();
+        Query query = Mockito.mock(Query.class);
+        Mockito.when(query.getRawQueryParams()).thenReturn(null);
+        listFilteredResource.list(null, null, query);
     }
 }
