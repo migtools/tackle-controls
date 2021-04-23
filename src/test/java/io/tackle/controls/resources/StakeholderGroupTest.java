@@ -261,7 +261,24 @@ public class StakeholderGroupTest extends SecuredResourceTest {
                         "_links.size()", is(4));
     }
 
-
-
-
+    @Test
+    // https://github.com/konveyor/tackle-controls/issues/103
+    public void testFilteringTheSameStakeholderGroupByMultipleMembers() {
+        given()
+                .accept("application/hal+json")
+                .queryParam("sort", "-name")
+                .queryParam("stakeholders.displayName", "ssi")
+                .queryParam("stakeholders.displayName", "mme")
+                .when()
+                .get(PATH)
+                .then()
+                .log().body()
+                .statusCode(200)
+                .body("_embedded.stakeholder-group.size()", is(2),
+                        "_embedded.stakeholder-group.id", containsInRelativeOrder( 52, 53),
+                        "_embedded.stakeholder-group[0].stakeholders.size()", is(2),
+                        "_embedded.stakeholder-group[0]._links.size()", is(5),
+                        "_embedded.stakeholder-group[0]._links.self.href", is("http://localhost:8081/controls/stakeholder-group/52"),
+                        "_links.size()", is(4));
+    }
 }
