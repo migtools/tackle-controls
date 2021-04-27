@@ -281,4 +281,68 @@ public class StakeholderGroupTest extends SecuredResourceTest {
                         "_embedded.stakeholder-group[0]._links.self.href", is("http://localhost:8081/controls/stakeholder-group/52"),
                         "_links.size()", is(4));
     }
+
+    @Test
+    // https://github.com/konveyor/tackle-controls/issues/111
+    public void testUniqueName() {
+        // create the StakeholderGroup
+        StakeholderGroup stakeholderGroup = new StakeholderGroup();
+        stakeholderGroup.name = "for the testUniqueName";
+        stakeholderGroup.id = Long.valueOf(
+                given()
+                        .contentType(ContentType.JSON)
+                        .accept(ContentType.JSON)
+                        .body(stakeholderGroup)
+                        .when()
+                        .post(PATH)
+                        .then()
+                        .statusCode(201)
+                        .extract()
+                        .path("id")
+                        .toString());
+
+        // try to add another StakeholderGroup with the same name
+        StakeholderGroup duplicated = new StakeholderGroup();
+        duplicated.name = "for the testUniqueName";
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(duplicated)
+                .when()
+                .post(PATH)
+                .then()
+                // this will expect a '409' from Quarkus 1.13+ with the introduction of RestDataPanacheException
+                .statusCode(500);
+
+        // remove the initial StakeholderGroup
+        given()
+                .pathParam("id", stakeholderGroup.id)
+                .when()
+                .delete(PATH + "/{id}")
+                .then()
+                .statusCode(204);
+
+        // and check the 'duplicated' StakeholderGroup now will be added
+        // proving the partial unique index is working properly with soft-delete
+        duplicated.id = Long.valueOf(
+                given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(duplicated)
+                .when()
+                .post(PATH)
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id")
+                .toString());
+
+        // remove 'duplicated' StakeholderGroup to not alter other tests
+        given()
+                .pathParam("id", duplicated.id)
+                .when()
+                .delete(PATH + "/{id}")
+                .then()
+                .statusCode(204);
+    }
 }
