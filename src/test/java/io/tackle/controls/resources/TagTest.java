@@ -8,6 +8,8 @@ import io.tackle.commons.testcontainers.KeycloakTestResource;
 import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
 import io.tackle.controls.entities.Tag;
+import io.tackle.controls.entities.TagType;
+import io.tackle.controls.util.TestUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -62,5 +64,73 @@ public class TagTest extends SecuredResourceTest {
                 .then()
                 // this will expect a '409' from Quarkus 1.13+ with the introduction of RestDataPanacheException
                 .statusCode(500);
+    }
+
+    @Test
+    // https://github.com/konveyor/tackle-controls/issues/114
+    public void testUniqueNameWithinTagType() {
+        Tag tag = new Tag();
+        tag.name = "test unique name";
+        TagType tagType = new TagType();
+        tagType.id = 20L;
+        tag.tagType = tagType;
+        TestUtils.testEntityUniqueness(tag, PATH);
+    }
+
+    @Test
+    // https://github.com/konveyor/tackle-controls/issues/114
+    public void testSameNameWithDifferentTagTypes() {
+        final String tagName = "test unique name";
+        // create a tag associated with a tag type
+        final Tag tag = new Tag();
+        tag.name = tagName;
+        final TagType tagType = new TagType();
+        tagType.id = 20L;
+        tag.tagType = tagType;
+        tag.id = Long.valueOf(given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(tag)
+                .when()
+                .post(PATH)
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id")
+                .toString());
+
+        // create a another tag with the same name
+        // BUT associated with a different tag type
+        final Tag anotherTag = new Tag();
+        anotherTag.name = tagName;
+        final TagType anotherTagType = new TagType();
+        anotherTagType.id = 19L;
+        anotherTag.tagType = anotherTagType;
+        anotherTag.id = Long.valueOf(given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(anotherTag)
+                .when()
+                .post(PATH)
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id")
+                .toString());
+
+        // delete both tags to not alter other tests execution
+        given()
+                .pathParam("id", tag.id)
+                .when()
+                .delete(PATH + "/{id}")
+                .then()
+                .statusCode(204);
+
+        given()
+                .pathParam("id", anotherTag.id)
+                .when()
+                .delete(PATH + "/{id}")
+                .then()
+                .statusCode(204);
     }
 }
