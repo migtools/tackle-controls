@@ -16,6 +16,7 @@ import io.tackle.commons.testcontainers.KeycloakTestResource;
 import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
 import io.tackle.controls.entities.BusinessService;
+import io.tackle.controls.util.TestUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -319,5 +320,13 @@ public class BusinessServiceTest extends SecuredResourceTest {
                         "_embedded.business-service[1]._links.size()", is(5),
                         "_embedded.business-service[1]._links.self.href", is("http://localhost:8081/controls/business-service/1"),
                         "_links.size()", is(4));
+    }
+
+    @Test
+    // https://github.com/konveyor/tackle-controls/issues/114
+    public void testUniqueName() {
+        BusinessService businessService = new BusinessService();
+        businessService.name = "test unique name";
+        TestUtils.testEntityUniqueness(businessService, PATH);
     }
 }
