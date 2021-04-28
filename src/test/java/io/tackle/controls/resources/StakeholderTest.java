@@ -18,6 +18,7 @@ import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
 import io.tackle.controls.entities.StakeholderGroup;
+import io.tackle.controls.util.TestUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -296,59 +297,6 @@ public class StakeholderTest extends SecuredResourceTest {
         // create the Stakeholder
         Stakeholder stakeholder = new Stakeholder();
         stakeholder.email = "unique@email.com";
-        stakeholder.id = Long.valueOf(given()
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body(stakeholder)
-                .when()
-                .post(PATH)
-                .then()
-                .statusCode(201)
-                .extract()
-                .path("id")
-                .toString());
-
-        // try to add another Stakeholder with the same email
-        Stakeholder duplicated = new Stakeholder();
-        duplicated.email = "unique@email.com";
-        given()
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body(duplicated)
-                .when()
-                .post(PATH)
-                .then()
-                // this will expect a '409' from Quarkus 1.13+ with the introduction of RestDataPanacheException
-                .statusCode(500);
-
-        // remove the initial Stakeholder
-        given()
-                .pathParam("id", stakeholder.id)
-                .when()
-                .delete(PATH + "/{id}")
-                .then()
-                .statusCode(204);
-
-        // and check the 'duplicated' Stakeholder now will be added
-        // proving the partial unique index is working properly with soft-delete
-        duplicated.id = Long.valueOf(given()
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body(duplicated)
-                .when()
-                .post(PATH)
-                .then()
-                .statusCode(201)
-                .extract()
-                .path("id")
-                .toString());
-
-        // remove 'duplicated' Stakeholder to not alter other tests
-        given()
-                .pathParam("id", duplicated.id)
-                .when()
-                .delete(PATH + "/{id}")
-                .then()
-                .statusCode(204);
+        TestUtils.testEntityUniqueness(stakeholder, PATH);
     }
 }
