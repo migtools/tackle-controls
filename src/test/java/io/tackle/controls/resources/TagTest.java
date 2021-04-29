@@ -9,7 +9,6 @@ import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
 import io.tackle.controls.entities.Tag;
 import io.tackle.controls.entities.TagType;
-import io.tackle.controls.util.TestUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -64,17 +63,6 @@ public class TagTest extends SecuredResourceTest {
                 .then()
                 // this will expect as well a '409' from Quarkus 1.13+ with the introduction of RestDataPanacheException
                 .statusCode(409);
-    }
-
-    @Test
-    // https://github.com/konveyor/tackle-controls/issues/114
-    public void testUniqueNameWithinTagType() {
-        Tag tag = new Tag();
-        tag.name = "test unique name";
-        TagType tagType = new TagType();
-        tagType.id = 20L;
-        tag.tagType = tagType;
-        TestUtils.testEntityUniqueness(tag, PATH);
     }
 
     @Test

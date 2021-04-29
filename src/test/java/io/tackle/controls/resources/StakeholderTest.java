@@ -18,7 +18,6 @@ import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
 import io.tackle.controls.entities.StakeholderGroup;
-import io.tackle.controls.util.TestUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -289,14 +288,5 @@ public class StakeholderTest extends SecuredResourceTest {
                 .log().all()
                 .statusCode(404);
 
-    }
-
-    @Test
-    // https://github.com/konveyor/tackle-controls/issues/110
-    public void testUniqueEmail() {
-        // create the Stakeholder
-        Stakeholder stakeholder = new Stakeholder();
-        stakeholder.email = "unique@email.com";
-        TestUtils.testEntityUniqueness(stakeholder, PATH);
     }
 }

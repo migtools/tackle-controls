@@ -12,7 +12,6 @@ import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
 import io.tackle.controls.entities.Tag;
 import io.tackle.controls.entities.TagType;
-import io.tackle.controls.util.TestUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -225,13 +224,5 @@ public class TagTypeTest extends SecuredResourceTest {
         Query query = Mockito.mock(Query.class);
         Mockito.when(query.getRawQueryParams()).thenReturn(null);
         listFilteredResource.list(null, null, query);
-    }
-
-    @Test
-    // https://github.com/konveyor/tackle-controls/issues/114
-    public void testUniqueName() {
-        TagType tagType = new TagType();
-        tagType.name = "test unique name";
-        TestUtils.testEntityUniqueness(tagType, PATH);
     }
 }

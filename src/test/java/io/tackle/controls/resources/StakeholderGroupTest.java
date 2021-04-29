@@ -10,7 +10,6 @@ import io.tackle.commons.testcontainers.KeycloakTestResource;
 import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
 import io.tackle.controls.entities.StakeholderGroup;
-import io.tackle.controls.util.TestUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -281,14 +280,5 @@ public class StakeholderGroupTest extends SecuredResourceTest {
                         "_embedded.stakeholder-group[0]._links.size()", is(5),
                         "_embedded.stakeholder-group[0]._links.self.href", is("http://localhost:8081/controls/stakeholder-group/52"),
                         "_links.size()", is(4));
-    }
-
-    @Test
-    // https://github.com/konveyor/tackle-controls/issues/111
-    public void testUniqueName() {
-        // create the StakeholderGroup
-        StakeholderGroup stakeholderGroup = new StakeholderGroup();
-        stakeholderGroup.name = "for the testUniqueName";
-        TestUtils.testEntityUniqueness(stakeholderGroup, PATH);
     }
 }
