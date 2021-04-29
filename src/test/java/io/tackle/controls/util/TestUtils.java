@@ -29,8 +29,8 @@ public class TestUtils {
                 .when()
                 .post(resource)
                 .then()
-                // this will expect a '409' from Quarkus 1.13+ with the introduction of RestDataPanacheException
-                .statusCode(500);
+                // this will expect the same '409' from Quarkus 1.13+ with the introduction of RestDataPanacheException
+                .statusCode(409);
 
         // remove the initial entity
         given()

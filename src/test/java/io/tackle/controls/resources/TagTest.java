@@ -62,8 +62,8 @@ public class TagTest extends SecuredResourceTest {
                 .when()
                 .post(PATH)
                 .then()
-                // this will expect a '409' from Quarkus 1.13+ with the introduction of RestDataPanacheException
-                .statusCode(500);
+                // this will expect as well a '409' from Quarkus 1.13+ with the introduction of RestDataPanacheException
+                .statusCode(409);
     }
 
     @Test
