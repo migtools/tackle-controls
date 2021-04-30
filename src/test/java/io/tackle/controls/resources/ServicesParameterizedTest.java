@@ -9,6 +9,7 @@ import io.tackle.commons.entities.AbstractEntity;
 import io.tackle.commons.testcontainers.KeycloakTestResource;
 import io.tackle.commons.testcontainers.PostgreSQLDatabaseTestResource;
 import io.tackle.commons.tests.SecuredResourceTest;
+import io.tackle.controls.entities.BusinessService;
 import io.tackle.controls.entities.JobFunction;
 import io.tackle.controls.entities.Stakeholder;
 import io.tackle.controls.entities.StakeholderGroup;
@@ -26,7 +27,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
@@ -122,6 +122,65 @@ public class ServicesParameterizedTest extends SecuredResourceTest {
                 .statusCode(404);
     }
 
+    @ParameterizedTest
+    @MethodSource("testEntityUniquenessArguments")
+    // https://github.com/konveyor/tackle-controls/issues/114
+    public void testEntityUniqueness(AbstractEntity entity, String resource) {
+        // create the entity
+        Long firstId = Long.valueOf(given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(entity)
+                .when()
+                .post(resource)
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id")
+                .toString());
+
+        // try to add another time the same entity
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(entity)
+                .when()
+                .post(resource)
+                .then()
+                // this will expect the same '409' from Quarkus 1.13+ with the introduction of RestDataPanacheException
+                .statusCode(409);
+
+        // remove the initial entity
+        given()
+                .pathParam("id", firstId)
+                .when()
+                .delete(resource + "/{id}")
+                .then()
+                .statusCode(204);
+
+        // and check the 'duplicated' entity now will be added
+        // proving the partial unique index is working properly with soft-delete
+        Long secondId = Long.valueOf(given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .body(entity)
+                .when()
+                .post(resource)
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id")
+                .toString());
+
+        // remove 'duplicated' entity to not alter other tests
+        given()
+                .pathParam("id", secondId)
+                .when()
+                .delete(resource + "/{id}")
+                .then()
+                .statusCode(204);
+    }
+
     public static class CSVtoArray extends SimpleArgumentConverter {
         @Override
         protected Object convert(Object source, Class<?> targetType) throws ArgumentConversionException {
@@ -176,4 +235,35 @@ public class ServicesParameterizedTest extends SecuredResourceTest {
         );
     }
 
+    private static Stream<Arguments> testEntityUniquenessArguments() {
+        Stakeholder stakeholder = new Stakeholder();
+        stakeholder.email = "unique@email.com";
+
+        StakeholderGroup stakeholderGroup = new StakeholderGroup();
+        stakeholderGroup.name = "for the testUniqueName";
+
+        JobFunction jobFunction = new JobFunction();
+        jobFunction.role = "test unique role";
+
+        BusinessService businessService = new BusinessService();
+        businessService.name = "test unique name";
+
+        TagType tagType = new TagType();
+        tagType.name = "test unique name";
+
+        Tag tag = new Tag();
+        tag.name = "test unique name";
+        TagType associatedTagType = new TagType();
+        associatedTagType.id = 20L;
+        tag.tagType = associatedTagType;
+
+        return Stream.of(
+                Arguments.of(stakeholder, "/stakeholder"),
+                Arguments.of(stakeholderGroup, "/stakeholder-group"),
+                Arguments.of(jobFunction, "/job-function"),
+                Arguments.of(businessService, "/business-service"),
+                Arguments.of(tagType, "/tag-type"),
+                Arguments.of(tag, "/tag")
+        );
+    }
 }
