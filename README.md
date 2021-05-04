@@ -247,6 +247,18 @@ For creating the `Foo` resource, follow these steps:
    public class NativeFooIT extends FooTest {}
    ```
 
+### Add natural unique key
+
+When an entity's field is a natural key (e.g. the job function's role) that must be unique, then a [PostgreSQL partial index](https://www.postgresql.org/docs/10/indexes-partial.html) can be defined in order to guarantee uniqueness and preserve the soft delete approach.  
+If the `Foo` entity has a `name` field that is a natural key and must be unique, then the partial index can be defined in a Flyway script in this way:
+```sql
+create unique INDEX UK<unique_id>
+on foo (name)
+where (deleted = false);
+```
+so that the value of the `name` column in the `foo` table has the unique constraint only if `deleted = false`.  
+In this way it's guaranteed that a value, previously used in an already soft-deleted entity, can be used again.  
+
 ### Change a resource
 
 1. start the application in dev mode following [Running the application in dev mode](#running-the-application-in-dev-mode)
