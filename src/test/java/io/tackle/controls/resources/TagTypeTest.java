@@ -225,4 +225,98 @@ public class TagTypeTest extends SecuredResourceTest {
         Mockito.when(query.getRawQueryParams()).thenReturn(null);
         listFilteredResource.list(null, null, query);
     }
+
+    @Test
+    // https://github.com/konveyor/tackle-controls/issues/119
+    public void testSortByTagCountWithDeletedTags() {
+        // initial situation based on data inserted from Flyway scripts
+        given()
+                .accept("application/hal+json")
+                .queryParam("sort", "-tags.size()")
+                .when()
+                .get(PATH)
+                .then()
+                .statusCode(200)
+                .body("_embedded.tag-type.size()", is(6),
+                        "_embedded.tag-type.id", containsInRelativeOrder(23, 21, 20, 19, 18, 22),
+                        "_embedded.tag-type[0].tags.size()", is(7),
+                        "_embedded.tag-type[1].tags.size()", is(6),
+                        "_embedded.tag-type[2].tags.size()", is(5));
+
+        // add 2 more tags to tag type #21
+        TagType language = new TagType();
+        language.id = 21L;
+        Tag foo = new Tag();
+        foo.name = "foo";
+        foo.tagType = language;
+        foo.id = Long.valueOf(given()
+                .contentType("application/json")
+                .body(foo)
+                .when()
+                .post("/tag")
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id")
+                .toString());
+
+        Tag bar = new Tag();
+        bar.name = "bar";
+        bar.tagType = language;
+        bar.id = Long.valueOf(given()
+                .contentType("application/json")
+                .body(bar)
+                .when()
+                .post("/tag")
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id")
+                .toString());
+
+        // check the initial situation has changed accordingly to latest tag additions
+        given()
+                .accept("application/hal+json")
+                .queryParam("sort", "-tags.size()")
+                .when()
+                .get(PATH)
+                .then()
+                .statusCode(200)
+                .body("_embedded.tag-type.size()", is(6),
+                        "_embedded.tag-type.id", containsInRelativeOrder(21, 23, 20, 19, 18, 22),
+                        "_embedded.tag-type[0].tags.size()", is(8),
+                        "_embedded.tag-type[1].tags.size()", is(7),
+                        "_embedded.tag-type[2].tags.size()", is(5));
+
+        // now delete the 2 tags (foo, bar) created above
+        given()
+                .contentType("application/json")
+                .pathParam("id", foo.id)
+                .when()
+                .delete("/tag/{id}")
+                .then()
+                .statusCode(204);
+
+        given()
+                .contentType("application/json")
+                .pathParam("id", bar.id)
+                .when()
+                .delete("/tag/{id}")
+                .then()
+                .statusCode(204);
+
+        // check the initial situation has been restored
+        given()
+                .accept("application/hal+json")
+                .queryParam("sort", "-tags.size()")
+                .when()
+                .get(PATH)
+                .then()
+                .statusCode(200)
+                .body("_embedded.tag-type.size()", is(6),
+                        "_embedded.tag-type.id", containsInRelativeOrder(23, 21, 20, 19, 18, 22),
+                        "_embedded.tag-type[0].tags.size()", is(7),
+                        "_embedded.tag-type[1].tags.size()", is(6),
+                        "_embedded.tag-type[2].tags.size()", is(5));
+    }
 }
