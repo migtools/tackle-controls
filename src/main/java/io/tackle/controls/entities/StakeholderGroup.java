@@ -14,6 +14,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.PreRemove;
 import javax.persistence.Table;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -38,5 +39,18 @@ public class StakeholderGroup extends AbstractEntity {
     @PreRemove
     private void preRemove() {
         stakeholders.forEach(stakeholder -> stakeholder.stakeholderGroups.remove(this));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof StakeholderGroup)) return false;
+        StakeholderGroup group = (StakeholderGroup) o;
+        return Objects.equals(id, group.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
