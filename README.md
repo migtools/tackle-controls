@@ -77,7 +77,7 @@ root@36f92b030807:/# psql -U controls -d controls_db
 $ podman run -it --name keycloak --rm \
             -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin -e KEYCLOAK_IMPORT=/tmp/keycloak/quarkus-realm.json \
             -e DB_VENDOR=h2 -p 8180:8080 -p 8543:8443 -v ./src/main/resources/keycloak:/tmp/keycloak:Z \
-            jboss/keycloak:12.0.2
+            jboss/keycloak:12.0.4
 ```
 
 ### Run the application in dev mode
