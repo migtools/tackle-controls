@@ -1,11 +1,11 @@
 package io.tackle.controls.resources;
 
-import io.tackle.controls.entities.Stakeholder;
 import io.quarkus.hibernate.orm.rest.data.panache.PanacheEntityResource;
 import io.quarkus.panache.common.Page;
 import io.quarkus.panache.common.Sort;
 import io.quarkus.rest.data.panache.MethodProperties;
 import io.quarkus.rest.data.panache.ResourceProperties;
+import io.tackle.controls.entities.Stakeholder;
 
 import java.util.List;
 
@@ -13,4 +13,7 @@ import java.util.List;
 public interface StakeholderResource extends PanacheEntityResource<Stakeholder, Long> {
     @MethodProperties(exposed = false)
     List<Stakeholder> list(Page page, Sort sort);
+
+    @MethodProperties(exposed = false)
+    Stakeholder update(Long id, Stakeholder stakeholder);
 }

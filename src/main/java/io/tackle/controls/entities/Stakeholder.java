@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -63,5 +64,18 @@ public class Stakeholder extends AbstractEntity {
             if (stakeholderGroupFromDb != null) stakeholderGroupFromDb.stakeholders.add(this);
             else iter.remove();
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Stakeholder)) return false;
+        Stakeholder stakeholder = (Stakeholder) o;
+        return Objects.equals(id, stakeholder.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
