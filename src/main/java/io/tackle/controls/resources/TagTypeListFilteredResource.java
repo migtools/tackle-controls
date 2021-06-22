@@ -20,6 +20,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,13 +93,16 @@ public class TagTypeListFilteredResource implements ListFilteredResource<TagType
             // 4. replace the Tag entities loaded from DB with the one loaded in step #1 filtering by tag name
             final Map<Long, List<Tag>> tagsByTagTypeId = new HashMap<>();
             tags.forEach(tag -> tagsByTagTypeId.computeIfAbsent(tag.tagType.id, k -> new ArrayList<>()).add(tag));
-            tagTypes.forEach(tagType -> {
-                // clear the list of tags loaded from DB because they're not filtered by tag name
-                tagType.tags.clear();
-                // and replace them with tag coming from step #1 above
-                tagType.tags.addAll(tagsByTagTypeId.get(tagType.id));
-            });
-            return tagTypes;
+            return tagTypes.stream()
+                    // remove the TagType entities without an associated valid Tag entity
+                    .filter(tagType -> tagsByTagTypeId.get(tagType.id) != null)
+                    .peek(tagType -> {
+                        // clear the list of tags loaded from DB because they're not filtered by tag name
+                        tagType.tags.clear();
+                        // and replace them with tag coming from step #1 above
+                        tagType.tags.addAll(tagsByTagTypeId.getOrDefault(tagType.id, Collections.emptyList()));
+                    })
+                    .collect(Collectors.toList());
         }
         // otherwise the default implementation can be used
         else {

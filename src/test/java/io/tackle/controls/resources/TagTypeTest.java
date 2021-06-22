@@ -319,4 +319,20 @@ public class TagTypeTest extends SecuredResourceTest {
                         "_embedded.tag-type[1].tags.size()", is(6),
                         "_embedded.tag-type[2].tags.size()", is(5));
     }
+
+    @Test
+    // https://issues.redhat.com/browse/TACKLE-151
+    public void testListFilteredByNonexistentTag() {
+        given()
+                .accept("application/hal+json")
+                .queryParam("tags.name", "abcdefgh")
+                .when()
+                .get(PATH)
+                .then()
+                .statusCode(200)
+                .log().body()
+                .body("_embedded.tag-type.size()", is(0),
+                        "total_count", is(0));
+    }
+
 }
