@@ -72,9 +72,7 @@ jobs:
           java-package: jdk
       - name: Build container image
         run: |
-          eval $(minikube docker-env)
-
-          mvn -U -B package --file pom.xml \
+          mvn -U -B package --file tackle-controls/pom.xml \
           -Pcontainer-image -Pnative -DskipTests \
           -Dquarkus.container-image.push=false \
           -Dquarkus.container-image.group=tackle \
