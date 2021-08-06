@@ -1,6 +1,5 @@
 name: Regresion tests
 
-
 on:
   push:
     paths-ignore:
