@@ -1,6 +1,5 @@
 name: Regresion tests
 
-
 on:
   push:
     paths-ignore:
@@ -109,5 +108,5 @@ jobs:
           browser: ${{ matrix.browser }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CYPRESS_user: admin
-          CYPRESS_pass: admin
+          CYPRESS_user: tackle
+          CYPRESS_pass: password
