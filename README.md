@@ -427,9 +427,11 @@ where
 $ ab -n 1000 -c 20 -H 'Accept: application/hal+json' 'http://<host>/controls/business-service?name=service&sort=name&size=1&page=1'
 ```
 
-## Database management
+## Database management {#db-mgmt}
 
 > :rotating_light: Backup and Restore instructions are provided for development purposes and **NOT for production** usage :rotating_light:
+
+**This description is meant to support developers and contributors developing tackle-controls. A description how to backup/restore/move an operator-backed installation of Tackle (Application Assessment), consisting of `tackle-application-inventory`, `tackle-controls`, `tackle-pathfinder` and others can be found [here](./docs/MovingTackleDBs.md)**
 
 ### Backup
 
