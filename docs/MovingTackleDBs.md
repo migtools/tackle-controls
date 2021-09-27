@@ -25,7 +25,7 @@ So, make sure you have the Tackle Operator installed in the target system as wel
 ### 1) On the source system (or namespace), get your postgres pods (ignore the keycloak-postgresql)
 
 ```
-[🎩︎mnagel konveyor]$ oc get pods | grep postgres
+$ oc get pods | grep postgres
 tackle-application-inventory-postgresql-5f959df4df-zg46k   1/1     Running   0          15d
 tackle-controls-postgresql-6bfd5d57ff-cbnfr                1/1     Running   0          15d
 tackle-keycloak-postgresql-9cf6f6879-gbx5w                 1/1     Running   0          15d
