@@ -427,7 +427,7 @@ where
 $ ab -n 1000 -c 20 -H 'Accept: application/hal+json' 'http://<host>/controls/business-service?name=service&sort=name&size=1&page=1'
 ```
 
-## Database management {#db-mgmt}
+## Database management
 
 > :rotating_light: Backup and Restore instructions are provided for development purposes and **NOT for production** usage :rotating_light:
 
