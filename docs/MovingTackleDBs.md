@@ -40,7 +40,7 @@ oc exec tackle-application-inventory-postgresql-5f959df4df-zg46k -- printenv POS
 ```
 
 ### 3) Export (dump) the database without the flyway tables. 
-As opposed to the development instructions in the [README.md](../README.md#db-mgmt), this uses the `--clean --if-exists` flags, and therefore needs to drop the `-a` flag (data only).
+As opposed to the development instructions in the [README.md](../README.md#database-management), this uses the `--clean --if-exists` flags, and therefore needs to drop the `-a` flag (data only).
 The reason is - when installed via the Operator, even an "empty" database (no reports, assessments, tags, etc) already contains some "factory prepopulated" data and an import will fail with contraint violations.
 However, with the `--clean --if-exists` flags, `pg_dump` includes all the SQL to drop objects before they are recreated during the import.
 
