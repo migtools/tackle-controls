@@ -30,7 +30,7 @@ tackle-application-inventory-postgresql-5f959df4df-zg46k   1/1     Running   0  
 tackle-controls-postgresql-6bfd5d57ff-cbnfr                1/1     Running   0          15d
 tackle-keycloak-postgresql-9cf6f6879-gbx5w                 1/1     Running   0          15d
 tackle-pathfinder-postgresql-5557cb8bff-vgzng              1/1     Running   0          15d
-[🎩︎mnagel konveyor]$
+$
 ```
 
 ### 2) (repeat for every pod) get the DB user
