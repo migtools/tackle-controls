@@ -431,6 +431,8 @@ $ ab -n 1000 -c 20 -H 'Accept: application/hal+json' 'http://<host>/controls/bus
 
 > :rotating_light: Backup and Restore instructions are provided for development purposes and **NOT for production** usage :rotating_light:
 
+**This description is meant to support developers and contributors developing tackle-controls. A description how to backup/restore/move an operator-backed installation of Tackle (Application Assessment), consisting of `tackle-application-inventory`, `tackle-controls`, `tackle-pathfinder` and others can be found [here](./docs/MovingTackleDBs.md)**
+
 ### Backup
 
 1. get the name of the PostgreSQL pod:
