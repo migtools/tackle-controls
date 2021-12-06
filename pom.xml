@@ -28,6 +28,8 @@
     <jacoco.version>0.8.7</jacoco.version>
     <quarkus.package.type>jar</quarkus.package.type>
     <keycloak.version>12.0.3</keycloak.version>
+
+    <agroal.version>1.11</agroal.version>
   </properties>
 
   <repositories>
@@ -58,7 +60,37 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-agroal</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>io.agroal</groupId>
+          <artifactId>agroal-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.agroal</groupId>
+          <artifactId>agroal-narayana</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.agroal</groupId>
+          <artifactId>agroal-pool</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
+    <dependency>
+      <groupId>io.agroal</groupId>
+      <artifactId>agroal-api</artifactId>
+      <version>${agroal.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.agroal</groupId>
+      <artifactId>agroal-narayana</artifactId>
+      <version>${agroal.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.agroal</groupId>
+      <artifactId>agroal-pool</artifactId>
+      <version>${agroal.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-jdbc-postgresql</artifactId>
