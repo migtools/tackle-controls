@@ -53,7 +53,7 @@
     <dependency>
       <groupId>com.github.konveyor.tackle-commons-rest</groupId>
       <artifactId>commons-rest</artifactId>
-      <version>0.0.1</version>
+      <version>0.0.2</version>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
