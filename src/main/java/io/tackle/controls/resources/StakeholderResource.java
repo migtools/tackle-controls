@@ -15,5 +15,8 @@ public interface StakeholderResource extends PanacheEntityResource<Stakeholder, 
     List<Stakeholder> list(Page page, Sort sort);
 
     @MethodProperties(exposed = false)
+    Stakeholder add(Stakeholder stakeholder);
+
+    @MethodProperties(exposed = false)
     Stakeholder update(Long id, Stakeholder stakeholder);
 }

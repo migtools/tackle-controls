@@ -202,14 +202,26 @@ public class StakeholderTest extends SecuredResourceTest {
         stakeholder.stakeholderGroups.add(stakeholderGroup);
         stakeholder.stakeholderGroups.add(nonexistent);
 
-        Response response = given()
+        Long stakeholderId = Long.valueOf(
+                given()
                 .contentType(ContentType.JSON)
                 .accept("application/hal+json")
                 .body(stakeholder)
                 .when().log().body().post(PATH)
                 .then()
                 .log().all()
-                .statusCode(201).extract().response();
+                .statusCode(201)
+                .extract().path("id").toString()
+        );
+
+        Response response = given()
+                .accept("application/hal+json")
+                .pathParam("id", stakeholderId)
+                .when()
+                .get(PATH + "/{id}")
+                .then()
+                .statusCode(200)
+                .extract().response();
 
         assertEquals(displayName, response.path("displayName"));
         assertEquals(email, response.path("email"));
@@ -217,7 +229,7 @@ public class StakeholderTest extends SecuredResourceTest {
         assertEquals("alice", response.path("createUser"));
         assertEquals("alice", response.path("updateUser"));
 
-        Long stakeholderId = Long.valueOf(response.path("id").toString());
+        stakeholderId = Long.valueOf(response.path("id").toString());
 
         StakeholderGroup sg = new StakeholderGroup();
         sg.id = 54L;
