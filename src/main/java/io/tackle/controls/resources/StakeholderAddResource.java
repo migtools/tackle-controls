@@ -1,7 +1,7 @@
 package io.tackle.controls.resources;
 
+import io.quarkus.arc.ArcUndeclaredThrowableException;
 import io.tackle.controls.entities.Stakeholder;
-import org.hibernate.exception.ConstraintViolationException;
 import org.jboss.resteasy.links.LinkResource;
 
 import javax.persistence.PersistenceException;
@@ -12,7 +12,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
-import static javax.ws.rs.core.Response.Status.*;
+import static javax.ws.rs.core.Response.Status.CREATED;
 
 @Path("stakeholder")
 public class StakeholderAddResource {
@@ -30,11 +30,7 @@ public class StakeholderAddResource {
         try {
             stakeholder.persistAndFlush();
         } catch (PersistenceException e) {
-            if (e.getCause() instanceof ConstraintViolationException) {
-                return Response.status(CONFLICT).build();
-            } else {
-                throw e;
-            }
+            throw new ArcUndeclaredThrowableException("Error while persisting stakeholder", e);
         }
 
         return Response.status(CREATED).entity(stakeholder).build();
