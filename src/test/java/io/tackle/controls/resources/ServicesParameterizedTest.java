@@ -148,7 +148,8 @@ public class ServicesParameterizedTest extends SecuredResourceTest {
                 .post(resource)
                 .then()
                 // this will expect the same '409' from Quarkus 1.13+ with the introduction of RestDataPanacheException
-                .statusCode(409);
+                .statusCode(409)
+                .body("errorMessage", is("ERROR: duplicate key value violates unique constraint"));
 
         // remove the initial entity
         given()
